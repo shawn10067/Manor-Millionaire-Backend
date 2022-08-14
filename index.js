@@ -1,4 +1,16 @@
 // create a function to remove all jailed people at 12am or pm
+import { createServer } from "http";
+
+import {
+  ApolloServerPluginDrainHttpServer,
+  ApolloServerPluginLandingPageLocalDefault,
+} from "apollo-server-core";
+
+import { makeExecutableSchema } from "@graphql-tools/schema";
+
+import { WebSocketServer } from "ws";
+
+import { useServer } from "graphql-ws/lib/use/ws";
 
 import typeDefs from "./graphql/typedefs/index.js";
 import resolvers from "./graphql/resolvers/index.js";
