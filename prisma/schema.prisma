@@ -9,3 +9,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// create a new type called "User" in the database based on the existing graphql schema
+
+
