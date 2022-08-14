@@ -10,6 +10,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// create a new type called "User" in the database based on the existing graphql schema
+// create a new type called "User" in the database based on the graphql typedefs created
+model User {
+  id                Int                 @unique @default(autoincrement())
+  username          String              @unique
+  cash              Int
+  fireBaseId        String
+  friends           User[]
+  sentTrades        TradesOnUsers[]     @relation("sender")
+  recievedTrades    TradesOnUsers[]     @relation("receiver")
+  properties        Property[]
+  PropertiesOnUsers PropertiesOnUsers[]
+}
 
+model Property {
+  id                Int                 @unique @default(autoincrement())
+  country           String
+  address           String
+  imageUrl          String
+  price             Int
+  aloneIncome       Int
+  setIncome         Int
+  tier1Income       Int
+  tier2Income       Int
+  propertyValue     Int
+  tier1Cost         Int
+  tier2Cost         Int
+  PropertiesOnUsers PropertiesOnUsers[]
+}
 
+// table that connects users to properties
+model PropertiesOnUsers {
+  user          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  property      Property        @relation(fields: [popertyId], references: [id])
+  propertyId    Int
+  status        String          @default("alone")
+  frozen        Boolean         @default(false)
+  beingSent     TradesOnUsers[] @relation("sent")
+  beingRecieved TradesOnUsers[] @relation("recieved")
+
+  @@id([userId, propertyId])
+}
+
+// trade model
+model TradesOnUsers {
+  sender             User       @relation("sender", fields: [senderId], references: [id])
+  senderId           Int
+  reciever           User       @relation("reciever", fields: [recieverId], references: [id])
+  recieverId         Int
+  senderCash         Int
+  recieverCash       Int
+  senderProperties   Property[]
+  recieverProperties Property[]
+
+  @@id([recieverId, senderId])
+}
