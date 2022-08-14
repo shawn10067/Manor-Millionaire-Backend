@@ -84,6 +84,10 @@ const typeDefs = gql`
     getRandomProperty: Property!
     landRandomProperty: Property!
   }
+
+  type Subscription {
+    searchedUsers: String
+  }
 `;
 
 /*

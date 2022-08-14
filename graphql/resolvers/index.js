@@ -1,5 +1,6 @@
 import createUsers from "../mock/createUsers.js";
 import { makeMillion } from "../utils/money.js";
+import pubsub from "../utils/pubsub.js";
 
 const users = createUsers();
 
@@ -14,6 +15,10 @@ const resolvers = {
       return null;
     },
     searchUsers: (_, { searchString }) => {
+      console.log(searchString);
+      pubsub.publish("SEARCHED_USERS", {
+        searchedUsers: searchString,
+      });
       return users.filter((user) =>
         user.username.toLowerCase().includes(searchString.toLowerCase())
       );
@@ -95,6 +100,11 @@ const resolvers = {
     },
     inAppPurchase: (_, { productId }) => {
       return "PURCHASED";
+    },
+  },
+  Subscription: {
+    searchedUsers: {
+      subscribe: () => pubsub.asyncIterator("SEARCHED_USERS"),
     },
   },
 };
