@@ -46,6 +46,22 @@ for (let i = 0; i < 100; i++) {
   userArray.push(newUser);
 }
 
+// add friends to the users based on the Friend graphql typedef and other users from the userArray
+const createFriends = (user) => {
+  const friends = [];
+  for (let i = 0; i < Math.floor(Math.random() * 10); i++) {
+    friends.push(userArray[Math.floor(Math.random() * userArray.length)]);
+  }
+  return friends;
+};
+
+const userWithFriends = userArray.map((user) => {
+  return {
+    ...user,
+    friends: createFriends(user),
+  };
+});
+
 // add trades to users based on the Trade graphql typedef and other users from the userArray
 const createTrades = (user) => {
   const trades = [];
@@ -92,11 +108,11 @@ const createTrades = (user) => {
   return user;
 };
 
-const userTrades = userArray.map((user) => {
+const userTrades = userWithFriends.map((user) => {
   return createTrades(user);
 });
 
-console.dir(userTrades, { depth: null });
+// console.dir(userTrades, { depth: null });
 
 const createUsers = () => {
   return userTrades;

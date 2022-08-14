@@ -1,4 +1,4 @@
-const { gql } = require("apollo-server");
+import { gql } from "apollo-server";
 
 const typeDefs = gql`
   enum PropertyStatus {
@@ -17,9 +17,9 @@ const typeDefs = gql`
   type Trade {
     id: ID!
     theirUserID: ID!
-    theirProperties: [Properties!]!
+    theirProperties: [Property!]!
     requestedCash: Int!
-    recievingProperties: [Properties!]!
+    recievingProperties: [Property!]!
     recievingCash: Int!
   }
 
@@ -39,12 +39,12 @@ const typeDefs = gql`
     id: ID!
     username: String!
     cash: Int!
-    properties: [Properties!]!
+    properties: [Property!]!
     trades: [Trade!]!
     friends: [User!]!
   }
 
-  type Properties {
+  type Property {
     id: ID!
     country: String!
     address: String!
@@ -60,9 +60,15 @@ const typeDefs = gql`
   type Mutation {
     signUp(firebaseToken: String!, username: String!): String!
     acceptProperty(propertyID: ID!): Property!
-    landCash(propertyOwner: ID! cash: Int!): Property!
-    sendTrade(theirUserId: ID! propertiesYouWant: [Properties!]! cashYouWant: Int propertiesGiving: [Properties!]! cashGiving: Int ): Trade!
-    bankTrade(propertiesGiving: [Properties!]! cashGiving: Int ): Trade!
+    landCash(propertyOwner: ID!, cash: Int!): Property!
+    sendTrade(
+      theirUserId: ID!
+      propertiesYouWant: [ID!]!
+      cashYouWant: Int
+      propertiesGiving: [ID!]!
+      cashGiving: Int
+    ): Trade!
+    bankTrade(propertiesGiving: [ID!]!, cashGiving: Int): Int!
     acceptTrade(tradeId: ID!): Trade!
     sendFriendRequest(userId: ID!): User!
     acceptFriendRequest(userId: ID!): User!
@@ -71,12 +77,12 @@ const typeDefs = gql`
 
   type Query {
     login(username: String!, password: String!): String!
-    searchUsers(seachString: String!): [User!]!
+    searchUsers(searchString: String!): [User!]!
     getMe: User!
     getUser(username: String!): User
-    spin(): SpinOutcome!
-    getRandomProperty(): Property!
-    landRandomProperty(): Property!
+    spin: SpinOutcome!
+    getRandomProperty: Property!
+    landRandomProperty: Property!
   }
 `;
 
@@ -88,4 +94,4 @@ const typeDefs = gql`
  * will have a many-to-many users relationship
  */
 
-module.exports = typeDefs;
+export default typeDefs;

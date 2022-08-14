@@ -1,4 +1,5 @@
 import createUsers from "../mock/createUsers.js";
+import { makeMillion } from "../utils/money.js";
 
 const users = createUsers();
 
@@ -40,4 +41,62 @@ const resolvers = {
       return properties[Math.floor(Math.random() * properties.length)];
     },
   },
+  Mutation: {
+    signUp: (_, { firebaseToken, username }) => {
+      const user = users.find((user) => user.username === username);
+      if (user) {
+        return "USER_EXISTS";
+      } else {
+        return "NEW_USER";
+      }
+    },
+    acceptProperty: (_, { propertyID }) => {
+      return properties.find((property) => property.id === propertyID);
+    },
+    landCash: (_, { propertyOwner, cash }) => {
+      return properties.find((property) => property.id === propertyOwner);
+    },
+    sendTrade: (
+      _,
+      {
+        theirUserId,
+        propertiesYouWant,
+        cashYouWant,
+        propertiesGiving,
+        cashGiving,
+      }
+    ) => {
+      return {
+        id: Math.floor(Math.random() * 1000000),
+        theirUserId,
+        propertiesYouWant,
+        cashYouWant,
+        propertiesGiving,
+        cashGiving,
+      };
+    },
+    bankTrade: (_, { propertiesGiving, cashGiving }) => {
+      makeMillion(Math.floor(Math.random() * 1000000));
+    },
+    acceptTrade: (_, { tradeId }) => {
+      // return random trade from a random user
+      return users[Math.floor(Math.random() * users.length)].trades[
+        Math.floor(
+          Math.random() *
+            users[Math.floor(Math.random() * users.length)].trades.length
+        )
+      ];
+    },
+    sendFriendRequest: (_, { userId }) => {
+      return users.find((user) => user.id === userId);
+    },
+    acceptFriendRequest: (_, { userId }) => {
+      return users.find((user) => user.id === userId);
+    },
+    inAppPurchase: (_, { productId }) => {
+      return "PURCHASED";
+    },
+  },
 };
+
+export default resolvers;
