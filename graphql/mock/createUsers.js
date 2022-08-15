@@ -1,7 +1,9 @@
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
 import { makeMillion } from "../utils/money.js";
-import properties from "./properties.js";
+import dbProperties from "./dbProperties.js";
+
+const properties = dbProperties;
 
 // random username and password
 const randomUsernamePassword = () => {
@@ -109,6 +111,6 @@ const createUsers = () => {
   return userTrades;
 };
 
-// console.dir(createUsers(), { depth: null });
+console.dir(createUsers(), { depth: null });
 
 export default createUsers;

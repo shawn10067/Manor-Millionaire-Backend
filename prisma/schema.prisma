@@ -12,7 +12,6 @@ datasource db {
 }
 
 // create a new type called "User" in the database based on the graphql typedefs created
-// TODO: create friends 
 model User {
   id             Int                 @id @unique @default(autoincrement())
   username       String              @unique
