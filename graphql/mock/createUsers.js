@@ -1,14 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
 import { makeMillion } from "../utils/money.js";
-import createProperty from "./createProperties.js";
-
-// creating the properties
-let properties = [];
-for (let i = 0; i < 100; i++) {
-  const newProperty = createProperty();
-  properties = [...properties, newProperty];
-}
+import properties from "./properties.js";
 
 // random username and password
 const randomUsernamePassword = () => {
@@ -112,10 +105,10 @@ const userTrades = userWithFriends.map((user) => {
   return createTrades(user);
 });
 
-// console.dir(userTrades, { depth: null });
-
 const createUsers = () => {
   return userTrades;
 };
+
+// console.dir(createUsers(), { depth: null });
 
 export default createUsers;

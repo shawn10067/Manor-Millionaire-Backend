@@ -8,24 +8,25 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // create a new type called "User" in the database based on the graphql typedefs created
+// TODO: create friends 
 model User {
-  id             Int                 @unique @default(autoincrement())
+  id             Int                 @id @unique @default(autoincrement())
   username       String              @unique
   cash           Int
   fireBaseId     String
-  friends        User[]
+  friendsWithMe  User[] @relation("friends")
+  myFriends      User[] @relation("friends")
   sentTrades     TradesOnUsers[]     @relation("senderUser")
   recievedTrades TradesOnUsers[]     @relation("recieverUser")
   properties     PropertiesOnUsers[]
-  User           User?               @relation(fields: [userId], references: [id])
-  userId         Int?
 }
 
 model Property {
-  id              Int                 @unique @default(autoincrement())
+  id              Int                 @id @unique @default(autoincrement())
   country         String
   address         String
   imageUrl        String
@@ -42,7 +43,7 @@ model Property {
 
 // table that connects users to properties
 model PropertiesOnUsers {
-  id                      Int             @unique @default(autoincrement())
+  id                      Int             @id @unique @default(autoincrement())
   user                    User            @relation(fields: [userId], references: [id])
   userId                  Int
   property                Property        @relation(fields: [propertyId], references: [id])
@@ -51,16 +52,11 @@ model PropertiesOnUsers {
   frozen                  Boolean         @default(false)
   beingSent               TradesOnUsers[] @relation("propertySender")
   beingRecieved           TradesOnUsers[] @relation("propertyReceiver")
-  TradesOnUsers           TradesOnUsers?  @relation(fields: [tradesOnUsersRecieverId, tradesOnUsersSenderId], references: [recieverId, senderId])
-  tradesOnUsersRecieverId Int?
-  tradesOnUsersSenderId   Int?
-
-  @@id([userId, propertyId])
 }
 
 // trade model
 model TradesOnUsers {
-  id                          Int                 @unique @default(autoincrement())
+  id                          Int                 @id @unique @default(autoincrement())
   senderUser                  User                @relation("senderUser", fields: [senderId], references: [id])
   senderId                    Int
   recieverUser                User                @relation("recieverUser", fields: [recieverId], references: [id])
@@ -68,10 +64,5 @@ model TradesOnUsers {
   senderCash                  Int
   recieverCash                Int
   senderProperties            PropertiesOnUsers[] @relation("propertySender")
-  recieverProperties          PropertiesOnUsers[] @relation("propertyReciever")
-  PropertiesOnUsers           PropertiesOnUsers?  @relation(fields: [propertiesOnUsersUserId, propertiesOnUsersPropertyId], references: [userId, propertyId])
-  propertiesOnUsersUserId     Int?
-  propertiesOnUsersPropertyId Int?
-
-  @@id([recieverId, senderId])
+  recieverProperties          PropertiesOnUsers[] @relation("propertyReceiver")
 }
