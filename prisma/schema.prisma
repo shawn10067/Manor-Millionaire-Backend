@@ -16,7 +16,7 @@ model User {
   id             Int                 @id @unique @default(autoincrement())
   username       String              @unique
   cash           Int
-  fireBaseId     String
+  fireBaseId     String              @unique
   friendsWithMe  User[] @relation("friends")
   myFriends      User[] @relation("friends")
   sentTrades     TradesOnUsers[]     @relation("senderUser")

@@ -46,8 +46,15 @@ const addUsers = async () => {
   // add all the users from dbUser to the database
   for (let i = 0; i < dbUsers.length; i++) {
     const currentUser = dbUsers[i];
-    const { id, username, password, cash, properties, friends, trades } =
-      currentUser;
+    const {
+      id: fireBaseId,
+      username,
+      password,
+      cash,
+      properties,
+      friends,
+      trades,
+    } = currentUser;
     const propertyIds = properties.map((property) => {
       return {
         id: property.id,
@@ -57,11 +64,13 @@ const addUsers = async () => {
       id: friend.id;
     });
 
+    console.log(propertyIds);
+
     await prisma.user.create({
       data: {
         username,
         cash: makeMillion(Math.floor(Math.random() * 1000000)),
-        fireBaseId: id,
+        fireBaseId: fireBaseId,
         myFriends: {
           create: [],
         },
@@ -69,7 +78,7 @@ const addUsers = async () => {
           connect: [],
         },
         properties: {
-          connect: propertyIds,
+          create: [],
         },
         sentTrades: {
           create: [],
@@ -79,6 +88,35 @@ const addUsers = async () => {
         },
       },
     });
+
+    // get the current user from the database
+    const currentDbUser = await prisma.user.findUnique({
+      where: {
+        fireBaseId: fireBaseId,
+      },
+    });
+
+    // getting id of the current user
+    const currentUserId = currentDbUser.id;
+
+    // connect each property id to the user via properties on users
+    for (let j = 0; j < propertyIds.length; j++) {
+      const currentProperty = propertyIds[j];
+      await prisma.propertiesOnUsers.create({
+        data: {
+          user: {
+            connect: {
+              id: currentUserId,
+            },
+          },
+          property: {
+            connect: {
+              id: currentProperty.id,
+            },
+          },
+        },
+      });
+    }
   }
 };
 
@@ -88,4 +126,22 @@ const getProperties = async () => {
   console.log(dbProperties);
 };
 
-addUsers();
+const deleteUsers = async () => {
+  const deleteUsers = await prisma.user.deleteMany({});
+  console.log(deleteUsers);
+};
+
+const findUsers = async () => {
+  const dbUsers = await prisma.user.findMany({
+    include: {
+      properties: {
+        include: {
+          property: true,
+        },
+      },
+    },
+  });
+  console.dir(dbUsers, { depth: null });
+};
+
+findUsers();
