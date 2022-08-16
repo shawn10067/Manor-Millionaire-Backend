@@ -143,5 +143,3 @@ const findUsers = async () => {
   });
   console.dir(dbUsers, { depth: null });
 };
-
-findUsers();

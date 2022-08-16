@@ -1,8 +1,6 @@
-import createUsers from "../mock/createUsers.js";
+import users from "../mock/users.js";
 import { makeMillion } from "../utils/money.js";
 import pubsub from "../utils/pubsub.js";
-
-const users = createUsers();
 
 // create resolvers for the graphql schema based on the graphql typedefs and the 'users' mock data above
 const resolvers = {
@@ -15,7 +13,6 @@ const resolvers = {
       return null;
     },
     searchUsers: (_, { searchString }) => {
-      console.log(searchString);
       pubsub.publish("SEARCHED_USERS", {
         searchedUsers: searchString,
       });
