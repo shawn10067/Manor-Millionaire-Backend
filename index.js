@@ -11,6 +11,24 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 
+// prisma client
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+// token dependencies and functions
+import jwt from "jsonwebtoken";
+import { config } from "dotenv";
+const { parsed: envConfig } = config();
+const getUser = async (token) => {
+  const { id } = jwt.verify(token, envConfig.JWT_SECRET);
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+  return user;
+};
+
 // create a graphql server with the schema and the resolvers
 async function startApolloServer() {
   // Required logic for integrating with Express
@@ -38,6 +56,22 @@ async function startApolloServer() {
         },
       },
     ],
+    context: async ({ req }) => {
+      let user = null;
+
+      // user auth
+      if (req && req.headers && req.headers.authorization) {
+        const authSplit = req.headers.authorization.split(" ");
+        const bearer = authSplit[0];
+        if (bearer === "Bearer") {
+          const token = authSplit[1] || "";
+          user = token ? await getUser(token) : null;
+        }
+      }
+      return {
+        user,
+      };
+    },
   });
 
   // More required logic for integrating with Express

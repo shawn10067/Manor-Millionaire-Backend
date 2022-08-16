@@ -17,9 +17,9 @@ const typeDefs = gql`
   type Trade {
     id: ID!
     theirUserID: ID!
-    theirProperties: [Property!]!
+    theirProperties: [UserProperty!]!
     requestedCash: Int!
-    recievingProperties: [Property!]!
+    recievingProperties: [UserProperty!]!
     recievingCash: Int!
   }
 
@@ -35,11 +35,19 @@ const typeDefs = gql`
     tier2Cost: Int!
   }
 
+  type UserProperty {
+    id: ID!
+    status: PropertyStatus!
+    frozen: Boolean!
+    property: Property!
+    user: User!
+  }
+
   type User {
     id: ID!
     username: String!
     cash: Int!
-    properties: [Property!]!
+    properties: [UserProperty!]!
     trades: [Trade!]!
     friends: [User!]!
   }
@@ -53,14 +61,12 @@ const typeDefs = gql`
     income: PropertyPriceValues!
     propertyValue: Int!
     cost: PropertyCostValues!
-    status: PropertyStatus!
-    frozen: Boolean!
   }
 
   type Mutation {
     signUp(firebaseToken: String!, username: String!): String!
-    acceptProperty(propertyID: ID!): Property!
-    landCash(propertyOwner: ID!, cash: Int!): Property!
+    acceptProperty(propertyID: ID!): UserProperty!
+    landCash(propertyOwner: ID!, cash: Int!): UserProperty!
     sendTrade(
       theirUserId: ID!
       propertiesYouWant: [ID!]!
@@ -80,9 +86,10 @@ const typeDefs = gql`
     searchUsers(searchString: String!): [User!]!
     getMe: User!
     getUser(username: String!): User
+    getUserId(id: Int!): User
     spin: SpinOutcome!
     getRandomProperty: Property!
-    landRandomProperty: Property!
+    landRandomProperty: UserProperty!
   }
 
   type Subscription {
