@@ -281,26 +281,39 @@ const resolvers = {
       const intCashYouWant = parseInt(cashYouWant);
       const intCashGiving = parseInt(cashGiving);
 
-      const newTrade = await prisma.trade.create({
+      // formatting the properties you want to get the id's of
+      const propertiesYouWantWithIds = propertiesYouWant.map((propertyId) => {
+        return {
+          id: parseInt(propertyId),
+        };
+      });
+
+      const propertiesGivingWithIds = propertiesGiving.map((propertyId) => {
+        return {
+          id: parseInt(propertyId),
+        };
+      });
+
+      const newTrade = await prisma.tradesOnUsers.create({
         data: {
-          sender: {
+          senderUser: {
             connect: {
               id: user.id,
             },
           },
-          receiver: {
+          recieverUser: {
             connect: {
               id: intTheirUserId,
             },
           },
-          propertiesYouWant: {
-            create: propertiesYouWant,
+          recieverProperties: {
+            connect: propertiesYouWantWithIds,
           },
-          cashYouWant: intCashYouWant,
-          propertiesGiving: {
-            create: propertiesGiving,
+          recieverCash: intCashYouWant,
+          senderProperties: {
+            connect: propertiesGivingWithIds,
           },
-          cashGiving: intCashGiving,
+          senderCash: intCashGiving,
         },
       });
 

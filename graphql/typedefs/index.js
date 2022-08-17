@@ -16,7 +16,8 @@ const typeDefs = gql`
 
   type Trade {
     id: ID!
-    theirUserID: ID!
+    user: User!
+    fromUser: User!
     theirProperties: [UserProperty!]!
     requestedCash: Int!
     recievingProperties: [UserProperty!]!
