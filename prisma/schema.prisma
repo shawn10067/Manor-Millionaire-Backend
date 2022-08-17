@@ -20,7 +20,7 @@ model User {
   friendsWithMe  User[] @relation("friends")
   myFriends      User[] @relation("friends")
   sentTrades     TradesOnUsers[]     @relation("senderUser")
-  recievedTrades TradesOnUsers[]     @relation("recieverUser")
+  receivedTrades TradesOnUsers[]     @relation("recieverUser")
   properties     PropertiesOnUsers[]
 }
 

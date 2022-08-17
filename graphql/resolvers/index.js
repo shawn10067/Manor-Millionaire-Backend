@@ -4,6 +4,8 @@ import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { config } from "dotenv";
+import { faker } from "@faker-js/faker";
+import { nanoid } from "nanoid";
 const prisma = new PrismaClient();
 const { parsed: envConfig } = config();
 
@@ -161,21 +163,109 @@ const resolvers = {
     },
   },
   Mutation: {
-    signUp: (_, { firebaseToken, username }) => {
-      const user = users.find((user) => user.username === username);
-      if (user) {
-        return "USER_EXISTS";
-      } else {
-        return "NEW_USER";
+    signUp: async (_, { firebaseId, username }) => {
+      const newUser = await prisma.user.create({
+        data: {
+          username: username,
+          cash: 200000000,
+          fireBaseId: firebaseId,
+          properties: {
+            create: [],
+          },
+          friendsWithMe: {
+            create: [],
+          },
+          myFriends: {
+            create: [],
+          },
+          sentTrades: {
+            create: [],
+          },
+          receivedTrades: {
+            create: [],
+          },
+        },
+      });
+      return jwt.sign(newUser, envConfig.JWT_SECRET);
+    },
+    acceptProperty: async (_, { propertyID }, ctx) => {
+      const { user } = ctx;
+      const intPropertyId = parseInt(propertyID);
+      console.log(user.id, intPropertyId);
+
+      // if the user already has the property, return false
+      const retrivedUser = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+        include: {
+          properties: {
+            include: {
+              property: true,
+            },
+          },
+        },
+      });
+      const userHasOne = retrivedUser.properties.some(({ property }) => {
+        console.log(property.id, intPropertyId, user);
+        return property.id === intPropertyId;
+      });
+
+      if (userHasOne) {
+        console.log("user has one");
+        return false;
       }
+
+      const newUserProperty = await prisma.propertiesOnUsers.create({
+        data: {
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          property: {
+            connect: {
+              id: intPropertyId,
+            },
+          },
+        },
+      });
+
+      return true;
     },
-    acceptProperty: (_, { propertyID }) => {
-      return properties.find((property) => property.id === propertyID);
+    landCash: async (_, { propertyOwnerId, cash }, ctx) => {
+      // TODO: make this into a transaction
+      const { user } = ctx;
+      const intPropertyOwnerId = parseInt(propertyOwnerId);
+      const intCash = parseInt(cash);
+
+      // subtract the cash from the user's cash
+      const retrivedUser = await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          cash: {
+            decrement: intCash,
+          },
+        },
+      });
+
+      // add the cash to the property owner's cash
+      await prisma.user.update({
+        where: {
+          id: intPropertyOwnerId,
+        },
+        data: {
+          cash: {
+            increment: intCash,
+          },
+        },
+      });
+
+      return retrivedUser;
     },
-    landCash: (_, { propertyOwner, cash }) => {
-      return properties.find((property) => property.id === propertyOwner);
-    },
-    sendTrade: (
+    sendTrade: async (
       _,
       {
         theirUserId,
@@ -183,22 +273,45 @@ const resolvers = {
         cashYouWant,
         propertiesGiving,
         cashGiving,
-      }
+      },
+      ctx
     ) => {
-      return {
-        id: Math.floor(Math.random() * 1000000),
-        theirUserId,
-        propertiesYouWant,
-        cashYouWant,
-        propertiesGiving,
-        cashGiving,
-      };
+      const { user } = ctx;
+      const intTheirUserId = parseInt(theirUserId);
+      const intCashYouWant = parseInt(cashYouWant);
+      const intCashGiving = parseInt(cashGiving);
+
+      const newTrade = await prisma.trade.create({
+        data: {
+          sender: {
+            connect: {
+              id: user.id,
+            },
+          },
+          receiver: {
+            connect: {
+              id: intTheirUserId,
+            },
+          },
+          propertiesYouWant: {
+            create: propertiesYouWant,
+          },
+          cashYouWant: intCashYouWant,
+          propertiesGiving: {
+            create: propertiesGiving,
+          },
+          cashGiving: intCashGiving,
+        },
+      });
+
+      return newTrade;
     },
-    bankTrade: (_, { propertiesGiving, cashGiving }) => {
+    bankTrade: async (_, { propertiesGiving }, ctx) => {
+      // delete the properties (on users) giving from the user and add all the property values together and increment the user's cash by that amount
       makeMillion(Math.floor(Math.random() * 1000000));
     },
     acceptTrade: (_, { tradeId }) => {
-      // return random trade from a random user
+      // ensure that all the right properties and cash amount exist and then update each user's cash and properties
       return users[Math.floor(Math.random() * users.length)].trades[
         Math.floor(
           Math.random() *
@@ -213,6 +326,7 @@ const resolvers = {
       return users.find((user) => user.id === userId);
     },
     inAppPurchase: (_, { productId }) => {
+      // determine what the product is and then update the user appropriately
       return "PURCHASED";
     },
   },

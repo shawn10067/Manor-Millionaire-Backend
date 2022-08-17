@@ -64,17 +64,17 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    signUp(firebaseToken: String!, username: String!): String!
-    acceptProperty(propertyID: ID!): UserProperty!
-    landCash(propertyOwner: ID!, cash: Int!): UserProperty!
+    signUp(firebaseId: String!, username: String!): String!
+    acceptProperty(propertyID: ID!): Boolean!
+    landCash(propertyOwnerId: ID!, cash: Int!): User!
     sendTrade(
       theirUserId: ID!
       propertiesYouWant: [ID!]!
-      cashYouWant: Int
+      cashYouWant: Int!
       propertiesGiving: [ID!]!
-      cashGiving: Int
+      cashGiving: Int!
     ): Trade!
-    bankTrade(propertiesGiving: [ID!]!, cashGiving: Int): Int!
+    bankTrade(propertiesGiving: [ID!]!): Int!
     acceptTrade(tradeId: ID!): Trade!
     sendFriendRequest(userId: ID!): User!
     acceptFriendRequest(userId: ID!): User!
