@@ -4,6 +4,7 @@ import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { config } from "dotenv";
+import { UserInputError } from "apollo-server-core";
 const prisma = new PrismaClient();
 const { parsed: envConfig } = config();
 
@@ -360,6 +361,13 @@ const resolvers = {
           },
           senderCash: intCashGiving,
         },
+
+        include: {
+          senderUser: true,
+          recieverUser: true,
+          recieverProperties: true,
+          senderProperties: true,
+        },
       });
 
       return newTrade;
@@ -368,14 +376,102 @@ const resolvers = {
       // delete the properties (on users) giving from the user and add all the property values together and increment the user's cash by that amount
       makeMillion(Math.floor(Math.random() * 1000000));
     },
-    acceptTrade: (_, { tradeId }) => {
+    acceptTrade: async (_, { tradeId }, ctx) => {
+      const intTradeId = parseInt(tradeId);
       // ensure that all the right properties and cash amount exist and then update each user's cash and properties
-      return users[Math.floor(Math.random() * users.length)].trades[
-        Math.floor(
-          Math.random() *
-            users[Math.floor(Math.random() * users.length)].trades.length
-        )
-      ];
+      const trade = await prisma.tradesOnUsers.findUnique({
+        where: {
+          id: intTradeId,
+        },
+        include: {
+          senderUser: {
+            include: {
+              properties: true,
+            },
+          },
+          recieverUser: {
+            include: {
+              properties: true,
+            },
+          },
+          senderProperties: true,
+          recieverProperties: true,
+        },
+      });
+
+      const {
+        senderUser,
+        recieverUser,
+        senderProperties,
+        recieverProperties,
+        senderCash,
+        recieverCash,
+      } = trade;
+
+      const sendUserPropertiesId = senderUser.properties.map((val) => val.id);
+      const recieveUserPropertiesId = recieverUser.properties.map(
+        (val) => val.id
+      );
+      const senderPropertiesId = senderProperties.map((val) => val.id);
+      const recievePropertiesId = recieverProperties.map((val) => val.id);
+
+      // making sure that all the senderProperties are in senderUserProperties
+      const senderPropertiesCorrect = senderPropertiesId.every((id) => {
+        return sendUserPropertiesId.find((val) => val === id);
+      });
+      const recieverPropertiesCorrect = recievePropertiesId.every((id) => {
+        return recieveUserPropertiesId.find((val) => val === id);
+      });
+      const senderHasMoney = senderUser.cash >= senderCash;
+      const recieverHasMoney = recieverUser.cash >= recieverCash;
+      console.log(
+        senderPropertiesCorrect,
+        recieverPropertiesCorrect,
+        senderHasMoney,
+        recieverHasMoney
+      );
+
+      if (
+        senderPropertiesCorrect &&
+        recieverPropertiesCorrect &&
+        senderHasMoney &&
+        recieverHasMoney
+      ) {
+        const mappedSenderProperties = senderProperties.map((val) => {
+          return {
+            id: val.id,
+          };
+        });
+        const mappedRecieveProperties = recieverProperties.map((val) => {
+          return {
+            id: val.id,
+          };
+        });
+        await prisma.user.update({
+          where: {
+            id: recieverUser.id,
+          },
+          data: {
+            properties: {
+              connect: mappedSenderProperties,
+            },
+          },
+        });
+        await prisma.user.update({
+          where: {
+            id: senderUser.id,
+          },
+          data: {
+            properties: {
+              connect: mappedRecieveProperties,
+            },
+          },
+        });
+      } else {
+        throw new UserInputError("Can't trade with properties and cash");
+      }
+
+      return trade;
     },
     sendFriendRequest: async (_, { userId }, ctx) => {
       // getting user from context
@@ -493,8 +589,8 @@ const resolvers = {
       });
       return propertiesFromDB;
     },
-    theirProperties: async ({ recieverProperties }, args, ctx) => {
-      const propertyIds = recieverProperties.map((property) => {
+    theirProperties: async (parent, args, ctx) => {
+      const propertyIds = parent.recieverProperties.map((property) => {
         return property.id;
       });
       const propertiesFromDB = await prisma.propertiesOnUsers.findMany({

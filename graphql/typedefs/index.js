@@ -82,8 +82,8 @@ const typeDefs = gql`
       propertiesGiving: [ID!]!
       cashGiving: Int!
     ): Trade!
-    bankTrade(propertiesGiving: [ID!]!): Int!
-    acceptTrade(tradeId: ID!): Trade!
+    bankTrade(propertiesGiving: [ID!]!): Int
+    acceptTrade(tradeId: ID!): Trade
     sendFriendRequest(userId: ID!): FriendRequest!
     acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
