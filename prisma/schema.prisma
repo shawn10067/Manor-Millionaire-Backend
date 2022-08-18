@@ -22,6 +22,8 @@ model User {
   sentTrades     TradesOnUsers[]     @relation("senderUser")
   receivedTrades TradesOnUsers[]     @relation("recieverUser")
   properties     PropertiesOnUsers[]
+  friendRequests FriendRequest[]    @relation("gotRequestUser")
+  sentfriendRequests FriendRequest[] @relation("requestUser")
 }
 
 model Property {
@@ -64,4 +66,12 @@ model TradesOnUsers {
   recieverCash                Int
   senderProperties            PropertiesOnUsers[] @relation("propertySender")
   recieverProperties          PropertiesOnUsers[] @relation("propertyReceiver")
+}
+
+model FriendRequest {
+  id                          Int                 @id @unique @default(autoincrement())
+  user                        User                @relation("gotRequestUser", fields: [userId], references: [id])
+  userId                      Int
+  requestUser                 User                @relation("requestUser", fields: [requestUserId], references: [id])
+  requestUserId                   Int
 }

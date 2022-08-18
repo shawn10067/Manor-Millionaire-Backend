@@ -4,8 +4,6 @@ import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { config } from "dotenv";
-import { faker } from "@faker-js/faker";
-import { nanoid } from "nanoid";
 const prisma = new PrismaClient();
 const { parsed: envConfig } = config();
 
@@ -75,6 +73,53 @@ const resolvers = {
       } else {
         return [];
       }
+    },
+    trades: async (parent) => {
+      const trades = await prisma.tradesOnUsers.findMany({
+        where: {
+          recieverId: parent.id,
+        },
+        include: {
+          senderUser: true,
+          recieverUser: true,
+          senderProperties: true,
+          recieverProperties: true,
+        },
+      });
+
+      if (trades) {
+        return trades;
+      } else {
+        return [];
+      }
+    },
+    friendRequests: async (parent) => {
+      const friendRequests = await prisma.friendRequest.findMany({
+        where: {
+          userId: parent.id,
+        },
+        include: {
+          requestUser: true,
+          user: true,
+        },
+      });
+
+      if (friendRequests) {
+        return friendRequests;
+      } else {
+        return [];
+      }
+    },
+    friends: async (parent) => {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: parent.id,
+        },
+        include: {
+          myFriends: true,
+        },
+      });
+      return user.myFriends;
     },
   },
   Query: {
@@ -332,11 +377,81 @@ const resolvers = {
         )
       ];
     },
-    sendFriendRequest: (_, { userId }) => {
-      return users.find((user) => user.id === userId);
+    sendFriendRequest: async (_, { userId }, ctx) => {
+      // getting user from context
+      const { user } = ctx;
+
+      const intUserId = parseInt(userId);
+
+      // send a friend request to the user with the userId
+      const newFriendRequest = await prisma.friendRequest.create({
+        data: {
+          requestUser: {
+            connect: {
+              id: user.id,
+            },
+          },
+          user: {
+            connect: {
+              id: intUserId,
+            },
+          },
+        },
+      });
+
+      console.log(newFriendRequest);
+
+      return newFriendRequest;
     },
-    acceptFriendRequest: (_, { userId }) => {
-      return users.find((user) => user.id === userId);
+    acceptFriendRequest: async (_, { friendRequestId }, ctx) => {
+      // TODO: make this into a transaction and delete the friend request from the database
+      const { user } = ctx;
+      const intFriendRequestId = parseInt(friendRequestId);
+
+      // get the friend request
+      const friendRequest = await prisma.friendRequest.findUnique({
+        where: {
+          id: intFriendRequestId,
+        },
+        include: {
+          user: true,
+          requestUser: true,
+        },
+      });
+
+      // add friends to each user
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          myFriends: {
+            connect: {
+              id: friendRequest.requestUser.id,
+            },
+          },
+        },
+        include: {
+          myFriends: true,
+        },
+      });
+
+      await prisma.user.update({
+        where: {
+          id: friendRequest.requestUser.id,
+        },
+        data: {
+          myFriends: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+        include: {
+          myFriends: true,
+        },
+      });
+      return friendRequest;
     },
     inAppPurchase: (_, { productId }) => {
       // determine what the product is and then update the user appropriately
@@ -346,6 +461,74 @@ const resolvers = {
   Subscription: {
     searchedUsers: {
       subscribe: () => pubsub.asyncIterator("SEARCHED_USERS"),
+    },
+  },
+  Trade: {
+    user: async ({ recieverId }, args, ctx) => {
+      const userFromDB = await prisma.user.findUnique({
+        where: {
+          id: recieverId,
+        },
+      });
+      return userFromDB;
+    },
+    fromUser: async ({ senderId }, args, ctx) => {
+      const forUserFromDB = await prisma.user.findUnique({
+        where: {
+          id: senderId,
+        },
+      });
+      return forUserFromDB;
+    },
+    recievingProperties: async ({ senderProperties }, args, ctx) => {
+      const propertyIds = senderProperties.map((property) => {
+        return property.id;
+      });
+      const propertiesFromDB = await prisma.propertiesOnUsers.findMany({
+        where: {
+          id: {
+            in: propertyIds,
+          },
+        },
+      });
+      return propertiesFromDB;
+    },
+    theirProperties: async ({ recieverProperties }, args, ctx) => {
+      const propertyIds = recieverProperties.map((property) => {
+        return property.id;
+      });
+      const propertiesFromDB = await prisma.propertiesOnUsers.findMany({
+        where: {
+          id: {
+            in: propertyIds,
+          },
+        },
+      });
+      return propertiesFromDB;
+    },
+    recievingCash: async ({ recieverCash }, args, ctx) => {
+      return recieverCash;
+    },
+    requestedCash: async ({ senderCash }, args, ctx) => {
+      return senderCash;
+    },
+  },
+  FriendRequest: {
+    user: async ({ userId }, args, ctx) => {
+      const userFromDB = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+      return userFromDB;
+    },
+    fromUser: async ({ requestUserId }, args, ctx) => {
+      const userFromDB = await prisma.user.findUnique({
+        where: {
+          id: requestUserId,
+        },
+      });
+      return userFromDB;
     },
   },
 };

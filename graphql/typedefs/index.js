@@ -24,6 +24,12 @@ const typeDefs = gql`
     recievingCash: Int!
   }
 
+  type FriendRequest {
+    id: ID!
+    user: User!
+    fromUser: User!
+  }
+
   type PropertyPriceValues {
     alone: Int!
     set: Int!
@@ -51,6 +57,7 @@ const typeDefs = gql`
     properties: [UserProperty!]!
     trades: [Trade!]!
     friends: [User!]!
+    friendRequests: [FriendRequest!]!
   }
 
   type Property {
@@ -77,8 +84,8 @@ const typeDefs = gql`
     ): Trade!
     bankTrade(propertiesGiving: [ID!]!): Int!
     acceptTrade(tradeId: ID!): Trade!
-    sendFriendRequest(userId: ID!): User!
-    acceptFriendRequest(userId: ID!): User!
+    sendFriendRequest(userId: ID!): FriendRequest!
+    acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
   }
 
@@ -104,6 +111,7 @@ const typeDefs = gql`
  * it will be indexed based on pkey id and username
  * will have a many-to-many properties relationship
  * will have a many-to-many users relationship
+ * will have a reset password option for firebase
  */
 
 export default typeDefs;
