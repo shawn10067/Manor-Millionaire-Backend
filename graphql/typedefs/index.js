@@ -19,9 +19,9 @@ const typeDefs = gql`
     user: User!
     fromUser: User!
     theirProperties: [UserProperty!]!
-    requestedCash: Int!
+    requestedCash: Float!
     recievingProperties: [UserProperty!]!
-    recievingCash: Int!
+    recievingCash: Float!
   }
 
   type FriendRequest {
@@ -53,7 +53,7 @@ const typeDefs = gql`
   type User {
     id: ID!
     username: String!
-    cash: Int!
+    cash: Float!
     properties: [UserProperty!]!
     trades: [Trade!]!
     friends: [User!]!
@@ -78,9 +78,9 @@ const typeDefs = gql`
     sendTrade(
       theirUserId: ID!
       propertiesYouWant: [ID!]!
-      cashYouWant: Int!
+      cashYouWant: Float!
       propertiesGiving: [ID!]!
-      cashGiving: Int!
+      cashGiving: Float!
     ): Trade!
     bankTrade(propertiesGiving: [ID!]!): Int
     acceptTrade(tradeId: ID!): Trade

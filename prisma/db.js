@@ -3,7 +3,7 @@ import properties from "../graphql/mock/properties.js";
 import dbUsers from "../graphql/mock/users.js";
 import { makeMillion } from "../graphql/utils/money.js";
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 // add all the properties to the database
 const addProperties = async () => {
@@ -126,20 +126,4 @@ const getProperties = async () => {
   console.log(dbProperties);
 };
 
-const deleteUsers = async () => {
-  const deleteUsers = await prisma.user.deleteMany({});
-  console.log(deleteUsers);
-};
-
-const findUsers = async () => {
-  const dbUsers = await prisma.user.findMany({
-    include: {
-      properties: {
-        include: {
-          property: true,
-        },
-      },
-    },
-  });
-  console.dir(dbUsers, { depth: null });
-};
+export default prisma;
