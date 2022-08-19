@@ -1,4 +1,3 @@
-import users from "../mock/users.js";
 import { makeMillion } from "../utils/money.js";
 import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
@@ -149,7 +148,7 @@ const resolvers = {
       const results = await prisma.user.findMany({
         where: {
           username: {
-            contains: lowerCaseSearchString,
+            startsWith: lowerCaseSearchString,
             mode: "insensitive",
           },
         },
@@ -237,32 +236,8 @@ const resolvers = {
     acceptProperty: async (_, { propertyID }, ctx) => {
       const { user } = ctx;
       const intPropertyId = parseInt(propertyID);
-      console.log(user.id, intPropertyId);
 
-      // if the user already has the property, return false
-      const retrivedUser = await prisma.user.findUnique({
-        where: {
-          id: user.id,
-        },
-        include: {
-          properties: {
-            include: {
-              property: true,
-            },
-          },
-        },
-      });
-      const userHasOne = retrivedUser.properties.some(({ property }) => {
-        console.log(property.id, intPropertyId, user);
-        return property.id === intPropertyId;
-      });
-
-      if (userHasOne) {
-        console.log("user has one");
-        return false;
-      }
-
-      const newUserProperty = await prisma.propertiesOnUsers.create({
+      await prisma.propertiesOnUsers.create({
         data: {
           user: {
             connect: {
@@ -280,7 +255,7 @@ const resolvers = {
       return true;
     },
     landCash: async (_, { propertyOwnerId, cash }, ctx) => {
-      // TODO: make this into a transaction
+      // TODO: make this into a transaction (pretty easy: https://www.prisma.io/docs/concepts/components/prisma-client/transactions#sequential-prisma-client-operations)
       const { user } = ctx;
       const intPropertyOwnerId = parseInt(propertyOwnerId);
       const intCash = parseInt(cash);
@@ -312,7 +287,7 @@ const resolvers = {
       return retrivedUser;
     },
     sendTrade: async (
-      _,
+      parent,
       {
         theirUserId,
         propertiesYouWant,
@@ -378,6 +353,7 @@ const resolvers = {
     },
     acceptTrade: async (_, { tradeId }, ctx) => {
       const intTradeId = parseInt(tradeId);
+
       // ensure that all the right properties and cash amount exist and then update each user's cash and properties
       const trade = await prisma.tradesOnUsers.findUnique({
         where: {
@@ -399,6 +375,7 @@ const resolvers = {
         },
       });
 
+      // getting all the attributes from the trade
       const {
         senderUser,
         recieverUser,
@@ -407,13 +384,36 @@ const resolvers = {
         senderCash,
         recieverCash,
       } = trade;
-
+      // determining the constraints on the trade
       const sendUserPropertiesId = senderUser.properties.map((val) => val.id);
       const recieveUserPropertiesId = recieverUser.properties.map(
         (val) => val.id
       );
       const senderPropertiesId = senderProperties.map((val) => val.id);
       const recievePropertiesId = recieverProperties.map((val) => val.id);
+      const priceDifference = senderCash - recieverCash;
+
+      let cashObject = {
+        sender: null,
+        reciever: null,
+      };
+      if (priceDifference > 0) {
+        cashObject.sender = {
+          increment: priceDifference,
+        };
+        cashObject.reciever = {
+          decrement: priceDifference,
+        };
+      } else if (priceDifference < 0) {
+        cashObject.sender = {
+          decrement: priceDifference,
+        };
+        cashObject.reciever = {
+          increment: priceDifference,
+        };
+      } else {
+        cashObject = undefined;
+      }
 
       // making sure that all the senderProperties are in senderUserProperties
       const senderPropertiesCorrect = senderPropertiesId.every((id) => {
@@ -455,6 +455,7 @@ const resolvers = {
             properties: {
               connect: mappedSenderProperties,
             },
+            cash: cashObject ? cashObject.reciever : undefined,
           },
         });
         await prisma.user.update({
@@ -465,6 +466,7 @@ const resolvers = {
             properties: {
               connect: mappedRecieveProperties,
             },
+            cash: cashObject ? cashObject.sender : undefined,
           },
         });
       } else {
