@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "TradesOnUsers" ALTER COLUMN "senderCash" SET DATA TYPE BIGINT,
+ALTER COLUMN "recieverCash" SET DATA TYPE BIGINT;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "cash" SET DATA TYPE BIGINT;
