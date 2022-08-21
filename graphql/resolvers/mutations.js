@@ -8,83 +8,105 @@ const { parsed: envConfig } = config();
 const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
-      const newUser = await prisma.user.create({
-        data: {
-          username: username,
-          cash: 200000000,
-          fireBaseId: firebaseId,
-          properties: {
-            create: [],
+      try {
+        const newUser = await prisma.user.create({
+          data: {
+            username: username,
+            cash: 250000000,
+            fireBaseId: firebaseId,
+            properties: {
+              create: [],
+            },
+            friendsWithMe: {
+              create: [],
+            },
+            myFriends: {
+              create: [],
+            },
+            sentTrades: {
+              create: [],
+            },
+            receivedTrades: {
+              create: [],
+            },
           },
-          friendsWithMe: {
-            create: [],
-          },
-          myFriends: {
-            create: [],
-          },
-          sentTrades: {
-            create: [],
-          },
-          receivedTrades: {
-            create: [],
-          },
-        },
-      });
-      return jwt.sign(newUser, envConfig.JWT_SECRET);
+        });
+        return jwt.sign(newUser, envConfig.JWT_SECRET);
+      } catch (e) {
+        throw new UserInputError(e.message, {
+          invalidArgs: e.errors,
+        });
+      }
     },
     acceptProperty: async (_, { propertyID }, ctx) => {
       authChecker(ctx);
       const { user } = ctx;
-      const intPropertyId = parseInt(propertyID);
+      try {
+        const intPropertyId = parseInt(propertyID);
 
-      await prisma.propertiesOnUsers.create({
-        data: {
-          user: {
-            connect: {
-              id: user.id,
+        await prisma.propertiesOnUsers.create({
+          data: {
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+            property: {
+              connect: {
+                id: intPropertyId,
+              },
             },
           },
-          property: {
-            connect: {
-              id: intPropertyId,
-            },
-          },
-        },
-      });
+        });
 
-      return true;
+        return true;
+      } catch (e) {
+        throw new UserInputError(e.message, {
+          invalidArgs: {
+            propertyID,
+          },
+        });
+      }
     },
     landCash: async (_, { propertyOwnerId, cash }, ctx) => {
       authChecker(ctx);
       const { user } = ctx;
-      const intPropertyOwnerId = parseInt(propertyOwnerId);
-      const intCash = parseInt(cash);
+      try {
+        const intPropertyOwnerId = parseInt(propertyOwnerId);
+        const intCash = parseInt(cash);
 
-      // subtract the cash from the user's cash
-      const retrivedUser = await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          cash: {
-            decrement: intCash,
+        const [paidUser, _] = await prisma.$transaction([
+          prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              cash: {
+                decrement: intCash,
+              },
+            },
+          }),
+          prisma.user.update({
+            where: {
+              id: intPropertyOwnerId,
+            },
+            data: {
+              cash: {
+                increment: intCash,
+              },
+            },
+          }),
+        ]);
+
+        return paidUser;
+      } catch (e) {
+        throw new UserInputError(e.message, {
+          invalidArgs: {
+            propertyOwnerId,
+            cash,
           },
-        },
-      });
-
-      // add the cash to the property owner's cash
-      await prisma.user.update({
-        where: {
-          id: intPropertyOwnerId,
-        },
-        data: {
-          cash: {
-            increment: intCash,
-          },
-        },
-      });
-
-      return retrivedUser;
+        });
+      }
     },
     sendTrade: async (
       parent,
@@ -99,319 +121,350 @@ const resolvers = {
     ) => {
       authChecker(ctx);
       const { user } = ctx;
-      const intTheirUserId = parseInt(theirUserId);
-      const intCashYouWant = parseInt(cashYouWant);
-      const intCashGiving = parseInt(cashGiving);
+      try {
+        const intTheirUserId = parseInt(theirUserId);
+        const intCashYouWant = parseInt(cashYouWant);
+        const intCashGiving = parseInt(cashGiving);
 
-      // formatting the properties you want to get the id's of
-      const propertiesYouWantWithIds = propertiesYouWant.map((propertyId) => {
-        return {
-          id: parseInt(propertyId),
-        };
-      });
+        // formatting the properties you want to get the id's of
+        const propertiesYouWantWithIds = propertiesYouWant.map((propertyId) => {
+          return {
+            id: parseInt(propertyId),
+          };
+        });
 
-      const propertiesGivingWithIds = propertiesGiving.map((propertyId) => {
-        return {
-          id: parseInt(propertyId),
-        };
-      });
+        const propertiesGivingWithIds = propertiesGiving.map((propertyId) => {
+          return {
+            id: parseInt(propertyId),
+          };
+        });
 
-      const newTrade = await prisma.tradesOnUsers.create({
-        data: {
-          senderUser: {
-            connect: {
-              id: user.id,
+        const newTrade = await prisma.tradesOnUsers.create({
+          data: {
+            senderUser: {
+              connect: {
+                id: user.id,
+              },
             },
-          },
-          recieverUser: {
-            connect: {
-              id: intTheirUserId,
+            recieverUser: {
+              connect: {
+                id: intTheirUserId,
+              },
             },
+            recieverProperties: {
+              connect: propertiesYouWantWithIds,
+            },
+            recieverCash: intCashYouWant,
+            senderProperties: {
+              connect: propertiesGivingWithIds,
+            },
+            senderCash: intCashGiving,
           },
-          recieverProperties: {
-            connect: propertiesYouWantWithIds,
-          },
-          recieverCash: intCashYouWant,
-          senderProperties: {
-            connect: propertiesGivingWithIds,
-          },
-          senderCash: intCashGiving,
-        },
 
-        include: {
-          senderUser: true,
-          recieverUser: true,
-          recieverProperties: true,
-          senderProperties: true,
-        },
-      });
+          include: {
+            senderUser: true,
+            recieverUser: true,
+            recieverProperties: true,
+            senderProperties: true,
+          },
+        });
 
-      return newTrade;
+        return newTrade;
+      } catch (e) {
+        throw new Error(e.message, {
+          invalidArgs: {
+            theirUserId,
+            propertiesYouWant,
+            cashYouWant,
+            propertiesGiving,
+            cashGiving,
+          },
+        });
+      }
     },
     bankTrade: async (_, { propertiesGiving }, ctx) => {
       authChecker(ctx);
       const { user } = ctx;
 
-      // formatting the properties you want to get the id's of
-      const propertiesGivingWithIds = propertiesGiving.map((propertyId) =>
-        parseInt(propertyId)
-      );
+      try {
+        // formatting the properties you want to get the id's of
+        const propertiesGivingWithIds = propertiesGiving.map((propertyId) =>
+          parseInt(propertyId)
+        );
 
-      // getting the properties in the array
-      const properties = await prisma.propertiesOnUsers.findMany({
-        where: {
-          id: {
-            in: propertiesGivingWithIds,
-          },
-        },
-        include: {
-          property: true,
-        },
-      });
-
-      // getting the property value from all the properties
-      const propertyValues = properties.reduce((acc, curr) => {
-        return acc + curr.property.propertyValue;
-      }, 0);
-
-      // removing the properties from the user's properties
-      await prisma.propertiesOnUsers.deleteMany({
-        where: {
-          id: {
-            in: propertiesGivingWithIds,
-          },
-        },
-      });
-
-      // incrementing the user's cash by the property value
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          cash: {
-            increment: propertyValues,
-          },
-        },
-      });
-
-      return propertyValues;
-    },
-
-    acceptTrade: async (_, { tradeId }, ctx) => {
-      authChecker(ctx);
-      // getting the trade
-      const intTradeId = parseInt(tradeId);
-      const trade = await prisma.tradesOnUsers.findUnique({
-        where: {
-          id: intTradeId,
-        },
-        include: {
-          senderUser: {
-            include: {
-              properties: true,
+        // getting the properties in the array
+        const properties = await prisma.propertiesOnUsers.findMany({
+          where: {
+            id: {
+              in: propertiesGivingWithIds,
             },
           },
-          recieverUser: {
-            include: {
-              properties: true,
-            },
+          include: {
+            property: true,
           },
-          senderProperties: true,
-          recieverProperties: true,
-        },
-      });
-
-      const {
-        senderUser,
-        recieverUser,
-        senderProperties,
-        recieverProperties,
-        senderCash,
-        recieverCash,
-      } = trade;
-
-      // determining the constraints on the trade
-      const sendUserPropertiesId = senderUser.properties.map((val) => val.id);
-      const recieveUserPropertiesId = recieverUser.properties.map(
-        (val) => val.id
-      );
-      const senderPropertiesId = senderProperties.map((val) => val.id);
-      const recievePropertiesId = recieverProperties.map((val) => val.id);
-      const priceDifference = senderCash - recieverCash;
-      const absPriceDifference = Math.abs(priceDifference);
-
-      // setting the constraints when the trade is accepted
-      let cashObject = {
-        sender: null,
-        reciever: null,
-      };
-
-      if (priceDifference > 0) {
-        cashObject.reciever = {
-          increment: absPriceDifference,
-        };
-        cashObject.sender = {
-          decrement: absPriceDifference,
-        };
-      } else if (priceDifference < 0) {
-        cashObject.reciever = {
-          decrement: absPriceDifference,
-        };
-        cashObject.sender = {
-          increment: absPriceDifference,
-        };
-      } else {
-        cashObject = undefined;
-      }
-
-      // making sure that all the senderProperties are in senderUserProperties
-      const senderPropertiesCorrect = senderPropertiesId.every((id) => {
-        return sendUserPropertiesId.find((val) => val === id);
-      });
-      const recieverPropertiesCorrect = recievePropertiesId.every((id) => {
-        return recieveUserPropertiesId.find((val) => val === id);
-      });
-      const senderHasMoney = senderUser.cash >= senderCash || senderCash === 0;
-      const recieverHasMoney =
-        recieverUser.cash >= recieverCash || recieverCash === 0;
-
-      // running the transaction
-      if (
-        senderPropertiesCorrect &&
-        recieverPropertiesCorrect &&
-        senderHasMoney &&
-        recieverHasMoney
-      ) {
-        // getting the ids in the right format
-        const mappedSenderProperties = senderProperties.map((val) => {
-          return {
-            id: val.id,
-          };
         });
-        const mappedRecieveProperties = recieverProperties.map((val) => {
-          return {
-            id: val.id,
-          };
-        });
+
+        // getting the property value from all the properties
+        const propertyValues = properties.reduce((acc, curr) => {
+          return acc + curr.property.propertyValue;
+        }, 0);
 
         await prisma.$transaction([
-          prisma.user.update({
+          prisma.propertiesOnUsers.deleteMany({
             where: {
-              id: recieverUser.id,
-            },
-            data: {
-              properties: {
-                connect: mappedSenderProperties,
+              id: {
+                in: propertiesGivingWithIds,
               },
-              cash: cashObject ? cashObject.reciever : undefined,
             },
           }),
           prisma.user.update({
             where: {
-              id: senderUser.id,
+              id: user.id,
             },
             data: {
-              properties: {
-                connect: mappedRecieveProperties,
+              cash: {
+                increment: propertyValues,
               },
-              cash: cashObject ? cashObject.sender : undefined,
             },
           }),
         ]);
-      } else {
-        // if the constraints are not met, throw an error
-        throw new UserInputError(
-          "Can't trade with the current set of properties and cash"
-        );
-      }
 
-      return trade;
+        return propertyValues;
+      } catch (e) {
+        throw new Error(e.message, {
+          invalidArgs: {
+            propertiesGiving,
+          },
+        });
+      }
+    },
+    acceptTrade: async (_, { tradeId }, ctx) => {
+      authChecker(ctx);
+      // getting the trade
+      try {
+        const intTradeId = parseInt(tradeId);
+        const trade = await prisma.tradesOnUsers.findUnique({
+          where: {
+            id: intTradeId,
+          },
+          include: {
+            senderUser: {
+              include: {
+                properties: true,
+              },
+            },
+            recieverUser: {
+              include: {
+                properties: true,
+              },
+            },
+            senderProperties: true,
+            recieverProperties: true,
+          },
+        });
+
+        const {
+          senderUser,
+          recieverUser,
+          senderProperties,
+          recieverProperties,
+          senderCash,
+          recieverCash,
+        } = trade;
+
+        // determining the constraints on the trade
+        const sendUserPropertiesId = senderUser.properties.map((val) => val.id);
+        const recieveUserPropertiesId = recieverUser.properties.map(
+          (val) => val.id
+        );
+        const senderPropertiesId = senderProperties.map((val) => val.id);
+        const recievePropertiesId = recieverProperties.map((val) => val.id);
+        const priceDifference = senderCash - recieverCash;
+        const absPriceDifference = Math.abs(priceDifference);
+
+        // setting the constraints when the trade is accepted
+        let cashObject = {
+          sender: null,
+          reciever: null,
+        };
+
+        if (priceDifference > 0) {
+          cashObject.reciever = {
+            increment: absPriceDifference,
+          };
+          cashObject.sender = {
+            decrement: absPriceDifference,
+          };
+        } else if (priceDifference < 0) {
+          cashObject.reciever = {
+            decrement: absPriceDifference,
+          };
+          cashObject.sender = {
+            increment: absPriceDifference,
+          };
+        } else {
+          cashObject = undefined;
+        }
+
+        // making sure that all the senderProperties are in senderUserProperties
+        const senderPropertiesCorrect = senderPropertiesId.every((id) => {
+          return sendUserPropertiesId.find((val) => val === id);
+        });
+        const recieverPropertiesCorrect = recievePropertiesId.every((id) => {
+          return recieveUserPropertiesId.find((val) => val === id);
+        });
+        const senderHasMoney =
+          senderUser.cash >= senderCash || senderCash === 0;
+        const recieverHasMoney =
+          recieverUser.cash >= recieverCash || recieverCash === 0;
+
+        // running the transaction
+        if (
+          senderPropertiesCorrect &&
+          recieverPropertiesCorrect &&
+          senderHasMoney &&
+          recieverHasMoney
+        ) {
+          // getting the ids in the right format
+          const mappedSenderProperties = senderProperties.map((val) => {
+            return {
+              id: val.id,
+            };
+          });
+          const mappedRecieveProperties = recieverProperties.map((val) => {
+            return {
+              id: val.id,
+            };
+          });
+
+          await prisma.$transaction([
+            prisma.user.update({
+              where: {
+                id: recieverUser.id,
+              },
+              data: {
+                properties: {
+                  connect: mappedSenderProperties,
+                },
+                cash: cashObject ? cashObject.reciever : undefined,
+              },
+            }),
+            prisma.user.update({
+              where: {
+                id: senderUser.id,
+              },
+              data: {
+                properties: {
+                  connect: mappedRecieveProperties,
+                },
+                cash: cashObject ? cashObject.sender : undefined,
+              },
+            }),
+          ]);
+        } else {
+          // if the constraints are not met, throw an error
+          throw new UserInputError(
+            "Can't trade with the current set of properties and cash"
+          );
+        }
+        return trade;
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: tradeId });
+      }
     },
     sendFriendRequest: async (_, { userId }, ctx) => {
       // getting user from context and the userId from the mutation
 
       authChecker(ctx);
       const { user } = ctx;
-      const intUserId = parseInt(userId);
+      try {
+        const intUserId = parseInt(userId);
 
-      // send a friend request to the user with the userId
-      const newFriendRequest = await prisma.friendRequest.create({
-        data: {
-          requestUser: {
-            connect: {
-              id: user.id,
+        // send a friend request to the user with the userId
+        const newFriendRequest = await prisma.friendRequest.create({
+          data: {
+            requestUser: {
+              connect: {
+                id: user.id,
+              },
+            },
+            user: {
+              connect: {
+                id: intUserId,
+              },
             },
           },
-          user: {
-            connect: {
-              id: intUserId,
-            },
-          },
-        },
-      });
+        });
 
-      return newFriendRequest;
+        return newFriendRequest;
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: userId });
+      }
     },
     acceptFriendRequest: async (_, { friendRequestId }, ctx) => {
       authChecker(ctx);
       // getting the friend request and user from the mutation
       const { user } = ctx;
-      const intFriendRequestId = parseInt(friendRequestId);
 
-      // get the friend request
-      const friendRequest = await prisma.friendRequest.findUnique({
-        where: {
-          id: intFriendRequestId,
-        },
-        include: {
-          user: true,
-          requestUser: true,
-        },
-      });
+      try {
+        const intFriendRequestId = parseInt(friendRequestId);
 
-      // add friends to each user
-      prisma.$transaction([
-        prisma.user.update({
+        // get the friend request
+        const friendRequest = await prisma.friendRequest.findUnique({
           where: {
-            id: user.id,
-          },
-          data: {
-            myFriends: {
-              connect: {
-                id: friendRequest.requestUser.id,
-              },
-            },
+            id: intFriendRequestId,
           },
           include: {
-            myFriends: true,
+            user: true,
+            requestUser: true,
           },
-        }),
-        prisma.user.update({
-          where: {
-            id: friendRequest.requestUser.id,
-          },
-          data: {
-            myFriends: {
-              connect: {
-                id: user.id,
+        });
+
+        // add friends to each user
+        await prisma.$transaction([
+          prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              myFriends: {
+                connect: {
+                  id: friendRequest.requestUser.id,
+                },
               },
             },
-          },
-          include: {
-            myFriends: true,
-          },
-        }),
-      ]);
+            include: {
+              myFriends: true,
+            },
+          }),
+          prisma.user.update({
+            where: {
+              id: friendRequest.requestUser.id,
+            },
+            data: {
+              myFriends: {
+                connect: {
+                  id: user.id,
+                },
+              },
+            },
+            include: {
+              myFriends: true,
+            },
+          }),
+        ]);
 
-      // delete the friend request
-      await prisma.friendRequest.delete({
-        where: {
-          id: intFriendRequestId,
-        },
-      });
+        // delete the friend request
+        await prisma.friendRequest.delete({
+          where: {
+            id: intFriendRequestId,
+          },
+        });
 
-      return friendRequest;
+        return friendRequest;
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: friendRequestId });
+      }
     },
     inAppPurchase: (_, { productId }, ctx) => {
       authChecker(ctx);

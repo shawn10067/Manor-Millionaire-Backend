@@ -8,6 +8,7 @@ const { parsed: envConfig } = config();
 const resolvers = {
   Query: {
     login: async (_, { username, password }) => {
+      // TODO: create firebase auth on frontend and integrate with backend (this method)
       // change login to use firebase instead, and then get the profile token based on firebase id
       const user = await prisma.user.findUnique({
         where: {
@@ -64,6 +65,7 @@ const resolvers = {
       return user;
     },
     spin: (parent, _, ctx) => {
+      // TODO: work out the probablilities for these for optimal fun
       authChecker(ctx);
       const spin = Math.floor(Math.random() * 100);
       if (spin < 33) {
