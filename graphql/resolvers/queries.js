@@ -2,6 +2,7 @@ import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
 import { config } from "dotenv";
+import { authChecker } from "../utils/authentication.js";
 const { parsed: envConfig } = config();
 
 const resolvers = {
@@ -23,7 +24,8 @@ const resolvers = {
         return "no such user";
       }
     },
-    searchUsers: async (_, { searchString }) => {
+    searchUsers: async (_, { searchString }, ctx) => {
+      authChecker(ctx);
       pubsub.publish("SEARCHED_USERS", {
         searchedUsers: searchString,
       });
@@ -40,9 +42,11 @@ const resolvers = {
       return results;
     },
     getMe: (_, args, ctx) => {
+      authChecker(ctx);
       return ctx.user;
     },
-    getUser: async (_, { username }) => {
+    getUser: async (_, { username }, ctx) => {
+      authChecker(ctx);
       const user = await prisma.user.findUnique({
         where: {
           username: username,
@@ -50,7 +54,8 @@ const resolvers = {
       });
       return user;
     },
-    getUserId: async (_, { id }) => {
+    getUserId: async (_, { id }, ctx) => {
+      authChecker(ctx);
       const user = await prisma.user.findUnique({
         where: {
           id: id,
@@ -58,7 +63,8 @@ const resolvers = {
       });
       return user;
     },
-    spin: () => {
+    spin: (parent, _, ctx) => {
+      authChecker(ctx);
       const spin = Math.floor(Math.random() * 100);
       if (spin < 33) {
         return "JAIL";
@@ -68,7 +74,8 @@ const resolvers = {
         return "LAND";
       }
     },
-    getRandomProperty: async () => {
+    getRandomProperty: async (parent, _, ctx) => {
+      authChecker(ctx);
       // get the property count from the database
       const propertyCount = await prisma.property.count();
 
@@ -78,7 +85,8 @@ const resolvers = {
       });
       return randomProperty;
     },
-    landRandomProperty: async () => {
+    landRandomProperty: async (parent, _, ctx) => {
+      authChecker(ctx);
       // get the user on property count from the database
       const userOnPropertyCount = await prisma.propertiesOnUsers.count();
 

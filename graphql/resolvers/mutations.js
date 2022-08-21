@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
 import { UserInputError } from "apollo-server-core";
 import { config } from "dotenv";
+import { authChecker } from "../utils/authentication.js";
 const { parsed: envConfig } = config();
 
 const resolvers = {
@@ -32,6 +33,7 @@ const resolvers = {
       return jwt.sign(newUser, envConfig.JWT_SECRET);
     },
     acceptProperty: async (_, { propertyID }, ctx) => {
+      authChecker(ctx);
       const { user } = ctx;
       const intPropertyId = parseInt(propertyID);
 
@@ -53,6 +55,7 @@ const resolvers = {
       return true;
     },
     landCash: async (_, { propertyOwnerId, cash }, ctx) => {
+      authChecker(ctx);
       const { user } = ctx;
       const intPropertyOwnerId = parseInt(propertyOwnerId);
       const intCash = parseInt(cash);
@@ -94,6 +97,7 @@ const resolvers = {
       },
       ctx
     ) => {
+      authChecker(ctx);
       const { user } = ctx;
       const intTheirUserId = parseInt(theirUserId);
       const intCashYouWant = parseInt(cashYouWant);
@@ -142,16 +146,10 @@ const resolvers = {
         },
       });
 
-      console.log(
-        "youre giving",
-        intCashGiving,
-        "youre getting",
-        intCashYouWant
-      );
-
       return newTrade;
     },
     bankTrade: async (_, { propertiesGiving }, ctx) => {
+      authChecker(ctx);
       const { user } = ctx;
 
       // formatting the properties you want to get the id's of
@@ -201,6 +199,7 @@ const resolvers = {
     },
 
     acceptTrade: async (_, { tradeId }, ctx) => {
+      authChecker(ctx);
       // getting the trade
       const intTradeId = parseInt(tradeId);
       const trade = await prisma.tradesOnUsers.findUnique({
@@ -222,8 +221,6 @@ const resolvers = {
           recieverProperties: true,
         },
       });
-
-      console.log(trade);
 
       const {
         senderUser,
@@ -267,8 +264,6 @@ const resolvers = {
       } else {
         cashObject = undefined;
       }
-
-      console.log(cashObject);
 
       // making sure that all the senderProperties are in senderUserProperties
       const senderPropertiesCorrect = senderPropertiesId.every((id) => {
@@ -325,15 +320,6 @@ const resolvers = {
           }),
         ]);
       } else {
-        console.log(
-          senderPropertiesCorrect,
-          recieverPropertiesCorrect,
-          senderHasMoney,
-          recieverHasMoney,
-          recieverCash,
-          recieverUser.cash
-        );
-
         // if the constraints are not met, throw an error
         throw new UserInputError(
           "Can't trade with the current set of properties and cash"
@@ -344,6 +330,8 @@ const resolvers = {
     },
     sendFriendRequest: async (_, { userId }, ctx) => {
       // getting user from context and the userId from the mutation
+
+      authChecker(ctx);
       const { user } = ctx;
       const intUserId = parseInt(userId);
 
@@ -366,6 +354,7 @@ const resolvers = {
       return newFriendRequest;
     },
     acceptFriendRequest: async (_, { friendRequestId }, ctx) => {
+      authChecker(ctx);
       // getting the friend request and user from the mutation
       const { user } = ctx;
       const intFriendRequestId = parseInt(friendRequestId);
@@ -424,7 +413,8 @@ const resolvers = {
 
       return friendRequest;
     },
-    inAppPurchase: (_, { productId }) => {
+    inAppPurchase: (_, { productId }, ctx) => {
+      authChecker(ctx);
       // determine what the product is and then update the user appropriately
       return "PURCHASED";
     },

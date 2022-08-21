@@ -64,8 +64,6 @@ const addUsers = async () => {
       id: friend.id;
     });
 
-    console.log(propertyIds);
-
     await prisma.user.create({
       data: {
         username,
@@ -123,7 +121,6 @@ const addUsers = async () => {
 const getProperties = async () => {
   //const deleteProp = await prisma.property.deleteMany({});
   const dbProperties = await prisma.property.findMany({});
-  console.log(dbProperties);
 };
 
 export default prisma;
