@@ -360,6 +360,11 @@ const resolvers = {
                 cash: cashObject ? cashObject.sender : undefined,
               },
             }),
+            prisma.tradesOnUsers.delete({
+              where: {
+                id: intTradeId,
+              },
+            }),
           ]);
         } else {
           // if the constraints are not met, throw an error
@@ -452,14 +457,12 @@ const resolvers = {
               myFriends: true,
             },
           }),
+          prisma.friendRequest.delete({
+            where: {
+              id: intFriendRequestId,
+            },
+          }),
         ]);
-
-        // delete the friend request
-        await prisma.friendRequest.delete({
-          where: {
-            id: intFriendRequestId,
-          },
-        });
 
         return friendRequest;
       } catch (e) {
