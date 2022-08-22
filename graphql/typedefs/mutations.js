@@ -4,7 +4,7 @@ const typeDefs = gql`
   type Mutation {
     signUp(firebaseId: String!, username: String!): String!
     acceptProperty(propertyID: ID!): Boolean!
-    landCash(propertyOwnerId: ID!, cash: Int!): User!
+    landCash(propertyOwnerId: ID!, cash: Int!, propertyAddress: String!): User!
     sendTrade(
       theirUserId: ID!
       propertiesYouWant: [ID!]!
@@ -17,6 +17,7 @@ const typeDefs = gql`
     sendFriendRequest(userId: ID!): FriendRequest!
     acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
+    deleteUser(userId: ID!): Boolean!
   }
 `;
 

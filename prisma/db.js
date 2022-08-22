@@ -123,4 +123,19 @@ const getProperties = async () => {
   const dbProperties = await prisma.property.findMany({});
 };
 
+const getProperty = async () => {
+  const property = await prisma.propertiesOnUsers.findUnique({
+    where: {
+      id: 18,
+    },
+    include: {
+      property: true,
+      user: true,
+    },
+  });
+  console.log(property);
+};
+
+//getProperty();
+
 export default prisma;

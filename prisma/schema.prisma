@@ -45,9 +45,9 @@ model Property {
 // table that connects users to properties
 model PropertiesOnUsers {
   id            Int             @id @unique @default(autoincrement())
-  user          User            @relation(fields: [userId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
-  property      Property        @relation(fields: [propertyId], references: [id])
+  property      Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId    Int
   status        String          @default("alone")
   frozen        Boolean         @default(false)
@@ -58,9 +58,9 @@ model PropertiesOnUsers {
 // trade model
 model TradesOnUsers {
   id                 Int                 @id @unique @default(autoincrement())
-  senderUser         User                @relation("senderUser", fields: [senderId], references: [id])
+  senderUser         User                @relation("senderUser", fields: [senderId], references: [id], onDelete: Cascade)
   senderId           Int
-  recieverUser       User                @relation("recieverUser", fields: [recieverId], references: [id])
+  recieverUser       User                @relation("recieverUser", fields: [recieverId], references: [id], onDelete: Cascade)
   recieverId         Int
   senderCash         BigInt
   recieverCash       BigInt
@@ -70,8 +70,8 @@ model TradesOnUsers {
 
 model FriendRequest {
   id            Int  @id @unique @default(autoincrement())
-  user          User @relation("gotRequestUser", fields: [userId], references: [id])
+  user          User @relation("gotRequestUser", fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
-  requestUser   User @relation("requestUser", fields: [requestUserId], references: [id])
+  requestUser   User @relation("requestUser", fields: [requestUserId], references: [id], onDelete: Cascade)
   requestUserId Int
 }

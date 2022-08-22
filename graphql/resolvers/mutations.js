@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
-import { UserInputError } from "apollo-server-core";
+import { AuthenticationError, UserInputError } from "apollo-server-core";
 import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
+import pubsub from "../utils/pubsub.js";
 const { parsed: envConfig } = config();
 
 const resolvers = {
@@ -68,7 +69,7 @@ const resolvers = {
         });
       }
     },
-    landCash: async (_, { propertyOwnerId, cash }, ctx) => {
+    landCash: async (_, { propertyOwnerId, cash, propertyAddress }, ctx) => {
       authChecker(ctx);
       const { user } = ctx;
       try {
@@ -97,6 +98,13 @@ const resolvers = {
             },
           }),
         ]);
+
+        pubsub.publish("LANDED_CASH", {
+          cash: intCash,
+          userId: paidUser.id,
+          propertyAddress,
+          propertyOwnerId: parseInt(propertyOwnerId),
+        });
 
         return paidUser;
       } catch (e) {
@@ -167,6 +175,10 @@ const resolvers = {
             recieverProperties: true,
             senderProperties: true,
           },
+        });
+
+        pubsub.publish("SENT_TRADE", {
+          trade: newTrade,
         });
 
         return newTrade;
@@ -243,6 +255,7 @@ const resolvers = {
       // getting the trade
       try {
         const intTradeId = parseInt(tradeId);
+
         const trade = await prisma.tradesOnUsers.findUnique({
           where: {
             id: intTradeId,
@@ -277,10 +290,11 @@ const resolvers = {
         const recieveUserPropertiesId = recieverUser.properties.map(
           (val) => val.id
         );
+
         const senderPropertiesId = senderProperties.map((val) => val.id);
         const recievePropertiesId = recieverProperties.map((val) => val.id);
         const priceDifference = senderCash - recieverCash;
-        const absPriceDifference = Math.abs(priceDifference);
+        const absPriceDifference = Math.abs(parseInt(priceDifference));
 
         // setting the constraints when the trade is accepted
         let cashObject = {
@@ -366,6 +380,12 @@ const resolvers = {
               },
             }),
           ]);
+
+          pubsub.publish("ACCEPTED_TRADE", {
+            trade: trade,
+          });
+
+          return trade;
         } else {
           // if the constraints are not met, throw an error
           throw new UserInputError(
@@ -399,6 +419,10 @@ const resolvers = {
               },
             },
           },
+        });
+
+        pubsub.publish("SENT_FRIEND_REQUEST", {
+          friendRequest: newFriendRequest,
         });
 
         return newFriendRequest;
@@ -464,6 +488,10 @@ const resolvers = {
           }),
         ]);
 
+        pubsub.publish("ACCEPTED_FRIEND_REQUEST", {
+          friendRequest: friendRequest,
+        });
+
         return friendRequest;
       } catch (e) {
         throw new UserInputError(e.message, { invalidArgs: friendRequestId });
@@ -473,6 +501,29 @@ const resolvers = {
       authChecker(ctx);
       // determine what the product is and then update the user appropriately
       return "PURCHASED";
+    },
+    deleteUser: async (_, { userId }, ctx) => {
+      authChecker(ctx);
+      const { user } = ctx;
+      try {
+        const intUserId = parseInt(userId);
+        if (user.id === intUserId) {
+          // delete the user
+          await prisma.user.delete({
+            where: {
+              id: intUserId,
+            },
+          });
+          return true;
+        } else {
+          throw new AuthenticationError(
+            "You can't delete someone else's account",
+            { invalidArgs: userId }
+          );
+        }
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: userId });
+      }
     },
   },
 };
