@@ -67,9 +67,9 @@ const resolvers = {
     spin: (parent, _, ctx) => {
       authChecker(ctx);
       const spin = Math.floor(Math.random() * 100);
-      if (spin < 33) {
+      if (spin < 10) {
         return "JAIL";
-      } else if (spin < 66) {
+      } else if (spin <= 55) {
         return "GET";
       } else {
         return "LAND";
