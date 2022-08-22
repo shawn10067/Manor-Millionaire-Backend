@@ -65,7 +65,6 @@ const resolvers = {
       return user;
     },
     spin: (parent, _, ctx) => {
-      // TODO: work out the probablilities for these for optimal fun
       authChecker(ctx);
       const spin = Math.floor(Math.random() * 100);
       if (spin < 33) {
@@ -78,13 +77,50 @@ const resolvers = {
     },
     getRandomProperty: async (parent, _, ctx) => {
       authChecker(ctx);
-      // get the property count from the database
-      const propertyCount = await prisma.property.count();
+
+      // probability object
+      const probabilityObject = {
+        upperBound: null,
+        lowerBound: null,
+      };
+
+      // random probability
+      const randomProbability = Math.floor(Math.random() * 100);
+      if (randomProbability < 4) {
+        probabilityObject.upperBound = 150000000;
+        probabilityObject.lowerBound = 100000000;
+      } else if (randomProbability < 8) {
+        probabilityObject.upperBound = 100000000;
+        probabilityObject.lowerBound = 70000000;
+      } else if (randomProbability < 16) {
+        probabilityObject.upperBound = 70000000;
+        probabilityObject.lowerBound = 40000000;
+      } else {
+        probabilityObject.upperBound = 40000000;
+        probabilityObject.lowerBound = 5000000;
+      }
+
+      // get the corresponding property
+      const propertyCount = await prisma.property.count({
+        where: {
+          price: {
+            lte: probabilityObject.upperBound,
+            gte: probabilityObject.lowerBound,
+          },
+        },
+      });
 
       // get a random property based on a random number between 0 and the property count
       const randomProperty = await prisma.property.findFirst({
+        where: {
+          price: {
+            lte: probabilityObject.upperBound,
+            gte: probabilityObject.lowerBound,
+          },
+        },
         skip: Math.floor(Math.random() * propertyCount),
       });
+
       return randomProperty;
     },
     landRandomProperty: async (parent, _, ctx) => {
