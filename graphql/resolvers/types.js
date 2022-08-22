@@ -115,6 +115,9 @@ const resolvers = {
       });
       return user.myFriends;
     },
+    cash: async (parent) => {
+      return parseInt(parent.cash);
+    },
   },
 
   Trade: {
@@ -161,10 +164,10 @@ const resolvers = {
       return propertiesFromDB;
     },
     recievingCash: async ({ senderCash }, args, ctx) => {
-      return senderCash;
+      return parseInt(senderCash);
     },
     requestedCash: async ({ recieverCash }, args, ctx) => {
-      return recieverCash;
+      return parseInt(recieverCash);
     },
   },
   FriendRequest: {

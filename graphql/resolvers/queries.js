@@ -65,12 +65,11 @@ const resolvers = {
       return user;
     },
     spin: (parent, _, ctx) => {
-      // TODO: work out the probablilities for these for optimal fun
       authChecker(ctx);
       const spin = Math.floor(Math.random() * 100);
-      if (spin < 33) {
+      if (spin < 10) {
         return "JAIL";
-      } else if (spin < 66) {
+      } else if (spin <= 55) {
         return "GET";
       } else {
         return "LAND";
