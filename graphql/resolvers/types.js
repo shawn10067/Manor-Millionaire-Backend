@@ -116,7 +116,7 @@ const resolvers = {
       return user.myFriends;
     },
     cash: async (parent) => {
-      return parseInt(parent.cash);
+      return parseFloat(parent.cash);
     },
   },
 

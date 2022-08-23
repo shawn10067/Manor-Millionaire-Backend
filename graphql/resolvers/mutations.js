@@ -179,8 +179,23 @@ const resolvers = {
           },
         });
 
+        // parsing all the bigint into floats from newTrade
+        const parsedNewTrade = {
+          ...newTrade,
+          senderUser: {
+            ...newTrade.senderUser,
+            cash: parseFloat(newTrade.senderUser.cash),
+          },
+          recieverUser: {
+            ...newTrade.recieverUser,
+            cash: parseFloat(newTrade.recieverUser.cash),
+          },
+          recieverCash: parseFloat(newTrade.recieverCash),
+          senderCash: parseFloat(newTrade.senderCash),
+        };
+
         pubsub.publish("SENT_TRADE", {
-          trade: newTrade,
+          trade: parsedNewTrade,
         });
 
         return newTrade;

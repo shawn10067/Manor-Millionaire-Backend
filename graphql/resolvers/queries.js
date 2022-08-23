@@ -20,7 +20,11 @@ const resolvers = {
       });
 
       if (user && password === "password") {
-        return jwt.sign(user, envConfig.JWT_SECRET);
+        const changedUser = {
+          ...user,
+          cash: parseFloat(user.cash),
+        };
+        return jwt.sign(changedUser, envConfig.JWT_SECRET);
       } else {
         return "no such user";
       }
