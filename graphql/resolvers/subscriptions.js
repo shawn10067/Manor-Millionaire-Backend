@@ -25,6 +25,21 @@ const resolvers = {
         }
       ),
     },
+    sentTrade: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator("SENT_TRADE"),
+        ({ sentTrade }, { propertyOwnerId }) => {
+          console.log(sentTrade, propertyOwnerId);
+          return true;
+          const { propertyOwnerId: sentPropertyOwnerId } = sentTrade;
+          if (sentPropertyOwnerId === propertyOwnerId) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      ),
+    },
   },
 };
 

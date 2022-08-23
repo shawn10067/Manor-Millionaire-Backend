@@ -10,6 +10,7 @@ const typeDefs = gql`
   type Subscription {
     searchedUsers: String!
     landedCash(propertyOwnerId: Int!): LandedType!
+    sentTrade(propertyOwnerId: Int!): String!
   }
 `;
 
