@@ -2,14 +2,14 @@ import { gql } from "apollo-server-core";
 
 const typeDefs = gql`
   type LandedType {
-    cash: Int!
+    cash: Float!
     userId: Int!
     propertyAddress: String!
     propertyOwnerId: Int!
   }
   type Subscription {
     searchedUsers: String!
-    landedCash: LandedType!
+    landedCash(propertyOwnerId: Int!): LandedType!
   }
 `;
 

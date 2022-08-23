@@ -1,4 +1,3 @@
-import { subscribe } from "graphql";
 import { withFilter } from "graphql-subscriptions";
 import pubsub from "../utils/pubsub.js";
 
@@ -16,9 +15,13 @@ const resolvers = {
     landedCash: {
       subscribe: withFilter(
         () => pubsub.asyncIterator("LANDED_CASH"),
-        (payload, variables) => {
-          console.log(payload, variables);
-          return true;
+        ({ landedCash }, { propertyOwnerId }) => {
+          const { propertyOwnerId: landedPropertyOwnerId } = landedCash;
+          if (landedPropertyOwnerId === propertyOwnerId) {
+            return true;
+          } else {
+            return false;
+          }
         }
       ),
     },

@@ -100,10 +100,12 @@ const resolvers = {
         ]);
 
         pubsub.publish("LANDED_CASH", {
-          cash: intCash,
-          userId: paidUser.id,
-          propertyAddress,
-          propertyOwnerId: parseInt(propertyOwnerId),
+          landedCash: {
+            cash: intCash,
+            userId: paidUser.id,
+            propertyAddress,
+            propertyOwnerId: parseInt(propertyOwnerId),
+          },
         });
 
         return paidUser;
