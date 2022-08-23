@@ -18,6 +18,7 @@ const typeDefs = gql`
     acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
     deleteUser(userId: ID!): Boolean!
+    jailUser(userId: ID!): Boolean!
   }
 `;
 

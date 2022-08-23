@@ -24,6 +24,8 @@ model User {
   properties         PropertiesOnUsers[]
   friendRequests     FriendRequest[]     @relation("gotRequestUser")
   sentfriendRequests FriendRequest[]     @relation("requestUser")
+  frozen             Boolean             @default(false)
+  jailed             Boolean             @default(false)
 }
 
 model Property {
@@ -50,7 +52,6 @@ model PropertiesOnUsers {
   property      Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId    Int
   status        String          @default("alone")
-  frozen        Boolean         @default(false)
   beingSent     TradesOnUsers[] @relation("propertySender")
   beingRecieved TradesOnUsers[] @relation("propertyReceiver")
 }

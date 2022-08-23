@@ -68,8 +68,29 @@ const resolvers = {
       });
       return user;
     },
-    spin: (parent, _, ctx) => {
+    spin: async (parent, _, ctx) => {
       authChecker(ctx);
+
+      const { user } = ctx;
+      // if the user is jailed, they can't spin
+      if (user.jailed) {
+        return {
+          outcome: "JAIL",
+        };
+      }
+
+      if (user.frozen) {
+        // unfreeze the user
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            frozen: false,
+          },
+        });
+      }
+
       const spin = Math.floor(Math.random() * 100);
       if (spin < 10) {
         return "JAIL";

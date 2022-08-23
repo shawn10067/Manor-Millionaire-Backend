@@ -558,6 +558,32 @@ const resolvers = {
         throw new UserInputError(e.message, { invalidArgs: userId });
       }
     },
+    jailUser: async (_, { userId }, ctx) => {
+      authChecker(ctx);
+      const { user } = ctx;
+      try {
+        const intUserId = parseInt(userId);
+        if (user.id === intUserId) {
+          // jail the user
+          await prisma.user.update({
+            where: {
+              id: intUserId,
+            },
+            data: {
+              jailed: true,
+            },
+          });
+          return true;
+        } else {
+          throw new AuthenticationError(
+            "You can't jail someone else's account",
+            { invalidArgs: userId }
+          );
+        }
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: userId });
+      }
+    },
   },
 };
 

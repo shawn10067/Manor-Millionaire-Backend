@@ -37,12 +37,13 @@ const typeDefs = gql`
     trades: [Trade!]!
     friends: [User!]!
     friendRequests: [FriendRequest!]!
+    jailed: Boolean!
+    frozen: Boolean!
   }
 
   type UserProperty {
     id: ID!
     status: PropertyStatus!
-    frozen: Boolean!
     property: Property!
     user: User!
   }
