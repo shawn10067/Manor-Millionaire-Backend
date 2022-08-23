@@ -17,26 +17,43 @@ const resolvers = {
         () => pubsub.asyncIterator("LANDED_CASH"),
         ({ landedCash }, { propertyOwnerId }) => {
           const { propertyOwnerId: landedPropertyOwnerId } = landedCash;
-          if (landedPropertyOwnerId === propertyOwnerId) {
-            return true;
-          } else {
-            return false;
-          }
+          return landedPropertyOwnerId === propertyOwnerId;
         }
       ),
     },
     sentTrade: {
       subscribe: withFilter(
         () => pubsub.asyncIterator("SENT_TRADE"),
-        ({ sentTrade }, { propertyOwnerId }) => {
-          console.log(sentTrade, propertyOwnerId);
-          return true;
-          const { propertyOwnerId: sentPropertyOwnerId } = sentTrade;
-          if (sentPropertyOwnerId === propertyOwnerId) {
-            return true;
-          } else {
-            return false;
-          }
+        ({ sentTrade }, { recieverId }) => {
+          const { reciever } = sentTrade;
+          return reciever === recieverId;
+        }
+      ),
+    },
+    acceptedTrade: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator("ACCEPTED_TRADE"),
+        ({ acceptedTrade }, { senderId }) => {
+          const { sender } = acceptedTrade;
+          return sender === senderId;
+        }
+      ),
+    },
+    sentFriendRequest: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator("SENT_FRIEND_REQUEST"),
+        ({ sentFriendRequest }, { recieverId }) => {
+          const { reciever } = sentFriendRequest;
+          return reciever === recieverId;
+        }
+      ),
+    },
+    acceptedFriendRequest: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator("ACCEPTED_FRIEND_REQUEST"),
+        ({ acceptedFriendRequest }, { senderId }) => {
+          const { sender } = acceptedFriendRequest;
+          return sender === senderId;
         }
       ),
     },

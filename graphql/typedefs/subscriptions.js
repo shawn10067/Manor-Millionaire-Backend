@@ -7,10 +7,33 @@ const typeDefs = gql`
     propertyAddress: String!
     propertyOwnerId: Int!
   }
+  type TradeSent {
+    sender: ID!
+    senderUsername: String!
+    reciever: ID!
+  }
+  type TradeAccepted {
+    sender: ID!
+    recieverUsername: String!
+    reciever: ID!
+  }
+  type FriendRequestSent {
+    sender: ID!
+    senderUsername: String!
+    reciever: ID!
+  }
+  type FriendRequestAccepted {
+    sender: ID!
+    recieverUsername: String!
+    reciever: ID!
+  }
   type Subscription {
     searchedUsers: String!
     landedCash(propertyOwnerId: Int!): LandedType!
-    sentTrade(propertyOwnerId: Int!): String!
+    sentTrade(recieverId: Int!): TradeSent!
+    acceptedTrade(senderId: Int!): TradeAccepted!
+    sentFriendRequest(recieverId: Int!): FriendRequestSent!
+    acceptedFriendRequest(senderId: Int!): FriendRequestAccepted!
   }
 `;
 

@@ -195,7 +195,11 @@ const resolvers = {
         };
 
         pubsub.publish("SENT_TRADE", {
-          trade: parsedNewTrade,
+          sentTrade: {
+            sender: parsedNewTrade.senderUser.id,
+            senderUsername: parsedNewTrade.senderUser.username,
+            reciever: parsedNewTrade.recieverUser.id,
+          },
         });
 
         return newTrade;
@@ -399,7 +403,11 @@ const resolvers = {
           ]);
 
           pubsub.publish("ACCEPTED_TRADE", {
-            trade: trade,
+            acceptedTrade: {
+              sender: senderUser.id,
+              recieverUsername: recieverUser.username,
+              reciever: recieverUser.id,
+            },
           });
 
           return trade;
@@ -439,7 +447,11 @@ const resolvers = {
         });
 
         pubsub.publish("SENT_FRIEND_REQUEST", {
-          friendRequest: newFriendRequest,
+          sentFriendRequest: {
+            sender: user.id,
+            senderUsername: user.username,
+            reciever: intUserId,
+          },
         });
 
         return newFriendRequest;
@@ -506,7 +518,11 @@ const resolvers = {
         ]);
 
         pubsub.publish("ACCEPTED_FRIEND_REQUEST", {
-          friendRequest: friendRequest,
+          acceptedFriendRequest: {
+            sender: friendRequest.requestUser.id,
+            recieverUsername: user.username,
+            reciever: user.id,
+          },
         });
 
         return friendRequest;
