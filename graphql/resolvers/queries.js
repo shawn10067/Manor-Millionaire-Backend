@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
 import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
+import { AuthenticationError, UserInputError } from "apollo-server-core";
 const { parsed: envConfig } = config();
 
 const resolvers = {
@@ -46,7 +47,7 @@ const resolvers = {
       });
       return results;
     },
-    getMe: (_, args, ctx) => {
+    getMe: (_, __, ctx) => {
       authChecker(ctx);
       return ctx.user;
     },
@@ -66,17 +67,22 @@ const resolvers = {
           id: id,
         },
       });
+      if (!user) {
+        throw UserInputError("Can't find user.", {
+          invalidArgs: {
+            id,
+          },
+        });
+      }
       return user;
     },
-    spin: async (parent, _, ctx) => {
+    spin: async (_, __, ctx) => {
       authChecker(ctx);
 
       const { user } = ctx;
       // if the user is jailed, they can't spin
       if (user.jailed) {
-        return {
-          outcome: "JAIL",
-        };
+        throw new AuthenticationError("You are jailed.");
       }
 
       if (user.frozen) {
@@ -95,9 +101,9 @@ const resolvers = {
       if (spin < 10) {
         return "JAIL";
       } else if (spin <= 55) {
-        return "GET";
+        return "GET PROPERTY";
       } else {
-        return "LAND";
+        return "PAY BILLS";
       }
     },
     getRandomProperty: async (parent, _, ctx) => {
@@ -155,6 +161,11 @@ const resolvers = {
 
       // get a random user on property based on a random number between 0 and the property count
       const randomUserOnProperty = await prisma.propertiesOnUsers.findFirst({
+        where: {
+          user: {
+            frozen: false,
+          },
+        },
         skip: Math.floor(Math.random() * userOnPropertyCount),
       });
 
