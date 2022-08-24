@@ -48,6 +48,7 @@ const resolvers = {
     },
     getMe: (_, args, ctx) => {
       authChecker(ctx);
+      console.log(ctx.user);
       return ctx.user;
     },
     getUser: async (_, { username }, ctx) => {
