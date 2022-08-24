@@ -7,7 +7,6 @@ const resolvers = {
       subscribe: withFilter(
         () => pubsub.asyncIterator("SEARCHED_USERS"),
         (payload, variables) => {
-          console.log(payload, variables);
           return typeof payload === "string";
         }
       ),
