@@ -3,11 +3,11 @@ const prisma = new PrismaClient();
 
 const postBail = async () => {
   await prisma.user.updateMany({
-    data: {
-      isBail: true,
-    },
     where: {
-      isBail: false,
+      jailed: true,
+    },
+    data: {
+      jailed: false,
     },
   });
 };
