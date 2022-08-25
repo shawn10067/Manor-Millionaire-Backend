@@ -119,7 +119,7 @@ const resolvers = {
       }
     },
     sendTrade: async (
-      parent,
+      _,
       {
         theirUserId,
         propertiesYouWant,
@@ -131,6 +131,14 @@ const resolvers = {
     ) => {
       authChecker(ctx);
       const { user } = ctx;
+      // if the user is trying to send a trade to themselves, throw an error
+      if (user.id === theirUserId) {
+        throw new AuthenticationError("You can't trade with yourself.");
+      }
+      // if the user is frozen, they can't trade
+      if (user.frozen) {
+        throw new AuthenticationError("You are frozen.");
+      }
       try {
         const intTheirUserId = parseInt(theirUserId);
         const intCashYouWant = parseInt(cashYouWant);
@@ -273,6 +281,11 @@ const resolvers = {
     },
     acceptTrade: async (_, { tradeId }, ctx) => {
       authChecker(ctx);
+      const { user } = ctx;
+      // if the user is frozen, they can't trade
+      if (user.frozen) {
+        throw new AuthenticationError("You are frozen.");
+      }
       // getting the trade
       try {
         const intTradeId = parseInt(tradeId);
@@ -410,6 +423,12 @@ const resolvers = {
             },
           });
 
+          await prisma.tradesOnUsers.delete({
+            where: {
+              id: intTradeId,
+            },
+          });
+
           return trade;
         } else {
           // if the constraints are not met, throw an error
@@ -427,8 +446,32 @@ const resolvers = {
 
       authChecker(ctx);
       const { user } = ctx;
+
+      // if you are sending a friend request to yourself, throw an error
+      if (user.id === userId) {
+        throw new UserInputError("You can't send a friend request to yourself");
+      }
+
+      // if the user is already friends with the userId, throw an error
+      // TODO: see if the property exists
+      const isAlreadyFriends = user.friends.some((val) => val.id === userId);
+      if (isAlreadyFriends) {
+        throw new UserInputError("You are already friends with this user");
+      }
+
       try {
         const intUserId = parseInt(userId);
+
+        // if a friend request already exists, return the friend request
+        const friendRequest = await prisma.friendRequest.findFirst({
+          where: {
+            requestUserId: user.id,
+            userId: intUserId,
+          },
+        });
+        if (friendRequest) {
+          return friendRequest;
+        }
 
         // send a friend request to the user with the userId
         const newFriendRequest = await prisma.friendRequest.create({
@@ -525,6 +568,13 @@ const resolvers = {
           },
         });
 
+        // deleting the friend request
+        await prisma.friendRequest.delete({
+          where: {
+            id: intFriendRequestId,
+          },
+        });
+
         return friendRequest;
       } catch (e) {
         throw new UserInputError(e.message, { invalidArgs: friendRequestId });
@@ -561,6 +611,12 @@ const resolvers = {
     jailUser: async (_, { userId }, ctx) => {
       authChecker(ctx);
       const { user } = ctx;
+
+      // if user is already in jail, return true
+      if (user.inJail) {
+        return true;
+      }
+
       try {
         const intUserId = parseInt(userId);
         if (user.id === intUserId) {
