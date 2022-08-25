@@ -118,6 +118,11 @@ const resolvers = {
     cash: async (parent) => {
       return parseFloat(parent.cash);
     },
+    lastSpin: async (parent) => {
+      const { lastSpin } = parent;
+      console.log(lastSpin);
+      return lastSpin;
+    },
   },
 
   Trade: {

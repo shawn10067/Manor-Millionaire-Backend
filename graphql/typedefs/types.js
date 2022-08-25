@@ -39,6 +39,7 @@ const typeDefs = gql`
     friendRequests: [FriendRequest!]!
     jailed: Boolean!
     frozen: Boolean!
+    lastSpin: String!
   }
 
   type UserProperty {

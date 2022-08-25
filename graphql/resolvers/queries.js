@@ -4,6 +4,7 @@ import prisma from "../../prisma/db.js";
 import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
 import { AuthenticationError, UserInputError } from "apollo-server-core";
+import frozenHelper from "../utils/frozenHelper.js";
 const { parsed: envConfig } = config();
 
 const resolvers = {
@@ -97,13 +98,24 @@ const resolvers = {
         });
       }
 
+      const date = new Date();
+
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          lastSpin: date,
+        },
+      });
+
       const spin = Math.floor(Math.random() * 100);
       if (spin < 10) {
         return "JAIL";
       } else if (spin <= 55) {
-        return "GET PROPERTY";
+        return "GET_PROPERTY";
       } else {
-        return "PAY BILLS";
+        return "PAY_BILLS";
       }
     },
     getRandomProperty: async (parent, _, ctx) => {
@@ -167,7 +179,24 @@ const resolvers = {
           },
         },
         skip: Math.floor(Math.random() * userOnPropertyCount),
+        include: {
+          user: true,
+        },
       });
+
+      const lastTimeSpin = new Date(randomUserOnProperty.user.lastSpin);
+      const date = new Date();
+
+      if (frozenHelper(lastTimeSpin, date)) {
+        await prisma.user.update({
+          where: {
+            id: randomUserOnProperty.user.id,
+          },
+          data: {
+            frozen: true,
+          },
+        });
+      }
 
       return randomUserOnProperty;
     },

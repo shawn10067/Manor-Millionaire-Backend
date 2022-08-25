@@ -17,6 +17,7 @@ model User {
   username           String              @unique
   frozen             Boolean             @default(false)
   jailed             Boolean             @default(false)
+  lastSpin           DateTime            @default(now())
   cash               BigInt
   fireBaseId         String              @unique
   friendsWithMe      User[]              @relation("friends")

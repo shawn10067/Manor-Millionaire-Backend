@@ -10,8 +10,8 @@ const typeDefs = gql`
 
   enum SpinOutcome {
     JAIL
-    GET
-    LAND
+    GET_PROPERTY
+    PAY_BILLS
   }
 `;
 
