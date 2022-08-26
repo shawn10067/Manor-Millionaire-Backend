@@ -9,26 +9,26 @@ const { parsed: envConfig } = config();
 
 const resolvers = {
   Query: {
-    login: async (_, { username, password }) => {
+    login: async (_, { firebaseId }) => {
       // TODO: create firebase auth on frontend and integrate with backend (this method)
       // change login to use firebase instead, and then get the profile token based on firebase id
       const user = await prisma.user.findUnique({
         where: {
-          username: username,
+          fireBaseId: firebaseId,
         },
         include: {
           properties: true,
         },
       });
 
-      if (user && password === "password") {
-        const changedUser = {
+      if (user) {
+        const parsedUser = {
           ...user,
           cash: parseFloat(user.cash),
         };
-        return jwt.sign(changedUser, envConfig.JWT_SECRET);
+        return jwt.sign(parsedUser, envConfig.JWT_SECRET);
       } else {
-        return "no such user";
+        throw new AuthenticationError("No user found");
       }
     },
     searchUsers: async (_, { searchString }, ctx) => {

@@ -30,6 +30,8 @@ const resolvers = {
             receivedTrades: {
               create: [],
             },
+            jailed: false,
+            frozen: false,
           },
         });
         return jwt.sign(newUser, envConfig.JWT_SECRET);
@@ -423,12 +425,6 @@ const resolvers = {
             },
           });
 
-          await prisma.tradesOnUsers.delete({
-            where: {
-              id: intTradeId,
-            },
-          });
-
           return trade;
         } else {
           // if the constraints are not met, throw an error
@@ -436,7 +432,6 @@ const resolvers = {
             "Can't trade with the current set of properties and cash"
           );
         }
-        return trade;
       } catch (e) {
         throw new UserInputError(e.message, { invalidArgs: tradeId });
       }
@@ -453,11 +448,13 @@ const resolvers = {
       }
 
       // if the user is already friends with the userId, throw an error
-      // TODO: see if the property exists
-      const isAlreadyFriends = user.friends.some((val) => val.id === userId);
-      if (isAlreadyFriends) {
-        throw new UserInputError("You are already friends with this user");
-      }
+      // implement this later
+      // console.log(user);
+      // // TODO: see if the property exists
+      // const isAlreadyFriends = user.friends.some((val) => val.id === userId);
+      // if (isAlreadyFriends) {
+      //   throw new UserInputError("You are already friends with this user");
+      // }
 
       try {
         const intUserId = parseInt(userId);

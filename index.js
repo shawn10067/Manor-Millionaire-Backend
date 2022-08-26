@@ -29,6 +29,9 @@ const getUser = async (token) => {
   return user;
 };
 
+// firebase auth
+import { initializeApp } from "firebase-admin/app";
+
 // create a graphql server with the schema and the resolvers
 async function startApolloServer() {
   // Required logic for integrating with Express

@@ -2,7 +2,7 @@ import { gql } from "apollo-server";
 
 const typeDefs = gql`
   type Query {
-    login(username: String!, password: String!): String!
+    login(firebaseId: ID!): String!
     searchUsers(searchString: String!): [User!]!
     getMe: User!
     getUser(username: String!): User
