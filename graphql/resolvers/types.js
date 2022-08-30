@@ -1,5 +1,4 @@
 import prisma from "../../prisma/db.js";
-import envConfig from "../utils/envHelper.js";
 
 const resolvers = {
   Property: {
