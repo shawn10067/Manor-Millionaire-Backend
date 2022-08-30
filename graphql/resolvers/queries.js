@@ -5,16 +5,17 @@ import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
 import { AuthenticationError, UserInputError } from "apollo-server-core";
 import frozenHelper from "../utils/frozenHelper.js";
+import { getAuth } from "firebase-admin/auth";
 const { parsed: envConfig } = config();
 
 const resolvers = {
   Query: {
     login: async (_, { firebaseId }) => {
-      // TODO: create firebase auth on frontend and integrate with backend (this method)
-      // change login to use firebase instead, and then get the profile token based on firebase id
+      const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+      const { uid } = verfiyUser;
       const user = await prisma.user.findUnique({
         where: {
-          fireBaseId: firebaseId,
+          fireBaseId: uid,
         },
         include: {
           properties: true,

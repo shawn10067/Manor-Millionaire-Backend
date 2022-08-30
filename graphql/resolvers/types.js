@@ -120,7 +120,6 @@ const resolvers = {
     },
     lastSpin: async (parent) => {
       const { lastSpin } = parent;
-      console.log(lastSpin);
       return lastSpin;
     },
   },

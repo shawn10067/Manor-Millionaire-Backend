@@ -31,7 +31,6 @@ const getUser = async (token) => {
 
 // firebase admin stuff
 import googleApiKey from "./secrets/manor-millionaire-admin.js";
-console.log(googleApiKey);
 import { initializeApp } from "firebase-admin/app";
 import admin from "firebase-admin";
 initializeApp({

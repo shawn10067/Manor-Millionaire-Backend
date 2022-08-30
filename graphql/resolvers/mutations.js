@@ -10,15 +10,14 @@ import { getAuth } from "firebase-admin/auth";
 const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
-      const verfiyUser = await getAuth().verifyIdToken(firebaseId);
-      console.log(verfiyUser);
-      return "ya dig";
       try {
+        const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+        const { uid } = verfiyUser;
         const newUser = await prisma.user.create({
           data: {
             username: username,
             cash: 250000000,
-            fireBaseId: firebaseId,
+            fireBaseId: uid,
             properties: {
               create: [],
             },

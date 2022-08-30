@@ -133,7 +133,6 @@ const getProperty = async () => {
       user: true,
     },
   });
-  console.log(property);
 };
 
 //getProperty();
