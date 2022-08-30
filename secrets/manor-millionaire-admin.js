@@ -4,7 +4,7 @@ const apiKey = {
   type: envConfig.G_TYPE,
   project_id: envConfig.G_PROJECT_ID,
   private_key_id: envConfig.G_PRIVATE_KEY_ID,
-  private_key: envConfig.G_PRIVATE_KEY,
+  private_key: envConfig.G_PRIVATE_KEY.replace(/\\n/gm, "\n"),
   client_email: envConfig.G_CLIENT_EMAIL,
   client_id: envConfig.G_CLIENT_ID,
   auth_uri: envConfig.G_AUTH_URI,
