@@ -87,10 +87,13 @@ async function startApolloServer() {
     app,
   });
 
-  await new Promise((resolve) =>
-    httpServer.listen({ port: process.env.PORT || 4000 }, resolve)
-  );
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+  const port = process.env.PORT || 4000;
+  const url = process.env.PROD
+    ? "https://manor-millionaire-server.herokuapp.com/graphql"
+    : `http://localhost:${port}/graphql`;
+
+  await new Promise((resolve) => httpServer.listen({ port }, resolve));
+  console.log(`🚀 Server ready at ${url}`);
 }
 
 startApolloServer();
