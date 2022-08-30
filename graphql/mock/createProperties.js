@@ -75,13 +75,16 @@ const createHouseStatus = () => {
   return houseStatus[Math.floor(Math.random() * houseStatus.length)];
 };
 
-// alone / = 6
-// set / = 4
-// tier 1 = / 2
-// tier 2 = * 1.5
-// property value = / 2.4
-// tier 1 = / 1.6
-// tier 2 = * 1.25
+/*
+  PRICING RULES:
+    alone / = 6
+    set / = 4
+    tier 1 = / 2
+    tier 2 = * 1.5
+    property value = / 2.4
+    tier 1 = / 1.6
+    tier 2 = * 1.25
+*/
 
 const createProperty = () => {
   // getting locale
