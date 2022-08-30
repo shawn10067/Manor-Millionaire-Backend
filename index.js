@@ -29,8 +29,14 @@ const getUser = async (token) => {
   return user;
 };
 
-// firebase auth
+// firebase admin stuff
+import googleApiKey from "./secrets/manor-millionaire-admin.js";
+console.log(googleApiKey);
 import { initializeApp } from "firebase-admin/app";
+import admin from "firebase-admin";
+initializeApp({
+  credential: admin.credential.cert(googleApiKey),
+});
 
 // create a graphql server with the schema and the resolvers
 async function startApolloServer() {

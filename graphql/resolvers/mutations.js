@@ -5,10 +5,14 @@ import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
 import pubsub from "../utils/pubsub.js";
 const { parsed: envConfig } = config();
+import { getAuth } from "firebase-admin/auth";
 
 const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
+      const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+      console.log(verfiyUser);
+      return "ya dig";
       try {
         const newUser = await prisma.user.create({
           data: {
