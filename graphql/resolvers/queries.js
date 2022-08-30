@@ -1,12 +1,11 @@
 import pubsub from "../utils/pubsub.js";
 import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
-import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
 import { AuthenticationError, UserInputError } from "apollo-server-core";
 import frozenHelper from "../utils/frozenHelper.js";
 import { getAuth } from "firebase-admin/auth";
-const { parsed: envConfig } = config();
+import envConfig from "../utils/envHelper.js";
 
 const resolvers = {
   Query: {

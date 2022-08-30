@@ -1,10 +1,9 @@
 import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db.js";
 import { AuthenticationError, UserInputError } from "apollo-server-core";
-import { config } from "dotenv";
 import { authChecker } from "../utils/authentication.js";
 import pubsub from "../utils/pubsub.js";
-const { parsed: envConfig } = config();
+import envConfig from "../utils/envHelper.js";
 import { getAuth } from "firebase-admin/auth";
 
 const resolvers = {

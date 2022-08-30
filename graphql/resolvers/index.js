@@ -1,5 +1,3 @@
-import { config } from "dotenv";
-const { parsed: envConfig } = config();
 import mutations from "./mutations.js";
 import queries from "./queries.js";
 import subscriptions from "./subscriptions.js";

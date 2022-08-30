@@ -1,6 +1,5 @@
 import prisma from "../../prisma/db.js";
-import { config } from "dotenv";
-const { parsed: envConfig } = config();
+import envConfig from "../utils/envHelper.js";
 
 const resolvers = {
   Property: {

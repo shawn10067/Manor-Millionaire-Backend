@@ -1,8 +1,7 @@
-import { config } from "dotenv";
-const { parsed: envConfig } = config();
+import envConfig from "../graphql/utils/envHelper.js";
 
 const apiKey = {
-  type: "service_account",
+  type: envConfig.G_TYPE,
   project_id: envConfig.G_PROJECT_ID,
   private_key_id: envConfig.G_PRIVATE_KEY_ID,
   private_key: envConfig.G_PRIVATE_KEY,

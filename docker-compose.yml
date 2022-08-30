@@ -1,7 +1,7 @@
 services:
   web:
+    env_file:
+      - .env
     ports:
       - "4000:4000"
-    build:
-      args:
-        - --env-file=.env
+    build: .

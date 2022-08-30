@@ -17,8 +17,7 @@ const prisma = new PrismaClient();
 
 // token dependencies and functions
 import jwt from "jsonwebtoken";
-import { config } from "dotenv";
-const { parsed: envConfig } = config();
+import envConfig from "./graphql/utils/envHelper.js";
 const getUser = async (token) => {
   const { id } = jwt.verify(token, envConfig.JWT_SECRET);
   const user = await prisma.user.findUnique({
