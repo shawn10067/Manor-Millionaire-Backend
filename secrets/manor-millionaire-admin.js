@@ -2,7 +2,7 @@ import { config } from "dotenv";
 const { parsed: envConfig } = config();
 
 const apiKey = {
-  type: envConfig.G_TYPE,
+  type: "service_account",
   project_id: envConfig.G_PROJECT_ID,
   private_key_id: envConfig.G_PRIVATE_KEY_ID,
   private_key: envConfig.G_PRIVATE_KEY,
