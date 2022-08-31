@@ -10,25 +10,28 @@ import envConfig from "../utils/envHelper.js";
 const resolvers = {
   Query: {
     login: async (_, { firebaseId }) => {
-      const verfiyUser = await getAuth().verifyIdToken(firebaseId);
-      const { uid } = verfiyUser;
-      const user = await prisma.user.findUnique({
-        where: {
-          fireBaseId: uid,
-        },
-        include: {
-          properties: true,
-        },
-      });
-
-      if (user) {
-        const parsedUser = {
-          ...user,
-          cash: parseFloat(user.cash),
-        };
-        return jwt.sign(parsedUser, envConfig.JWT_SECRET);
-      } else {
-        throw new AuthenticationError("No user found");
+      try {
+        const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+        const { uid } = verfiyUser;
+        const user = await prisma.user.findUnique({
+          where: {
+            fireBaseId: uid,
+          },
+          include: {
+            properties: true,
+          },
+        });
+        if (user) {
+          const parsedUser = {
+            ...user,
+            cash: parseFloat(user.cash),
+          };
+          return jwt.sign(parsedUser, envConfig.JWT_SECRET);
+        } else {
+          throw new AuthenticationError("No user found");
+        }
+      } catch (error) {
+        throw new AuthenticationError(error);
       }
     },
     searchUsers: async (_, { searchString }, ctx) => {
