@@ -42,6 +42,7 @@ const resolvers = {
           ...newUser,
           cash: parseFloat(newUser.cash),
         };
+        console.log(returningUser);
         return jwt.sign(returningUser, envConfig.JWT_SECRET);
       } catch (e) {
         throw new UserInputError(e.message, {
