@@ -5,13 +5,15 @@ import { authChecker } from "../utils/authentication.js";
 import pubsub from "../utils/pubsub.js";
 import envConfig from "../utils/envHelper.js";
 import { getAuth } from "firebase-admin/auth";
+import { faker } from "@faker-js/faker";
 
 const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
       try {
-        const verfiyUser = await getAuth().verifyIdToken(firebaseId);
-        const { uid } = verfiyUser;
+        //const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+        //const { uid } = verfiyUser;
+        const uid = faker.internet.password();
         const newUser = await prisma.user.create({
           data: {
             username: username,
@@ -36,7 +38,11 @@ const resolvers = {
             frozen: false,
           },
         });
-        return jwt.sign(newUser, envConfig.JWT_SECRET);
+        const returningUser = {
+          ...newUser,
+          cash: parseFloat(newUser.cash),
+        };
+        return jwt.sign(returningUser, envConfig.JWT_SECRET);
       } catch (e) {
         throw new UserInputError(e.message, {
           invalidArgs: e.errors,
