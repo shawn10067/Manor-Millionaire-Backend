@@ -11,9 +11,8 @@ const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
       try {
-        //const verfiyUser = await getAuth().verifyIdToken(firebaseId);
-        //const { uid } = verfiyUser;
-        const uid = faker.internet.password();
+        const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+        const { uid } = verfiyUser;
         const newUser = await prisma.user.create({
           data: {
             username: username,
