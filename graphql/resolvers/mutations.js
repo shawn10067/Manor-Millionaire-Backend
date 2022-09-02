@@ -5,7 +5,6 @@ import { authChecker } from "../utils/authentication.js";
 import pubsub from "../utils/pubsub.js";
 import envConfig from "../utils/envHelper.js";
 import { getAuth } from "firebase-admin/auth";
-import { faker } from "@faker-js/faker";
 
 const resolvers = {
   Mutation: {
