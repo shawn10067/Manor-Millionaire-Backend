@@ -8,4 +8,15 @@ const deleteUser = async (firebaseId) => {
   });
 };
 
-deleteUser("N6hR59gi6LfIBe5dNvVye7jyaEF2");
+const getAllUser = async () => {
+  const users = await prisma.user.findMany();
+  const spinSortedUsers = users.sort((a, b) => {
+    a.lastSpin > b.lastSpin;
+  });
+  console.log(spinSortedUsers);
+  return users;
+};
+
+// deleteUser("N6hR59gi6LfIBe5dNvVye7jyaEF2");
+
+getAllUser();

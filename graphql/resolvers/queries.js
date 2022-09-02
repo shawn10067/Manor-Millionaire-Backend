@@ -80,6 +80,15 @@ const resolvers = {
       }
       return user;
     },
+    userExists: async (_, { firebaseId }, ctx) => {
+      //authChecker(ctx);
+      const user = await prisma.user.findUnique({
+        where: {
+          fireBaseId: firebaseId,
+        },
+      });
+      return user ? true : false;
+    },
     spin: async (_, __, ctx) => {
       authChecker(ctx);
 

@@ -7,6 +7,7 @@ const typeDefs = gql`
     getMe: User!
     getUser(username: String!): User
     getUserId(id: Int!): User
+    userExists(firebaseId: String!): Boolean!
     spin: SpinOutcome!
     getRandomProperty: Property!
     landRandomProperty: UserProperty!

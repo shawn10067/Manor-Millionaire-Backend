@@ -27,6 +27,8 @@ model User {
   properties         PropertiesOnUsers[]
   friendRequests     FriendRequest[]     @relation("gotRequestUser")
   sentfriendRequests FriendRequest[]     @relation("requestUser")
+
+  @@index([username, fireBaseId])
   }
 
 model Property {
@@ -55,6 +57,7 @@ model PropertiesOnUsers {
   status        String          @default("alone")
   beingSent     TradesOnUsers[] @relation("propertySender")
   beingRecieved TradesOnUsers[] @relation("propertyReceiver")
+  @@index([userId])
 }
 
 // trade model
@@ -68,6 +71,7 @@ model TradesOnUsers {
   recieverCash       BigInt
   senderProperties   PropertiesOnUsers[] @relation("propertySender")
   recieverProperties PropertiesOnUsers[] @relation("propertyReceiver")
+  @@index([recieverId])
 }
 
 model FriendRequest {
@@ -76,4 +80,5 @@ model FriendRequest {
   userId        Int
   requestUser   User @relation("requestUser", fields: [requestUserId], references: [id], onDelete: Cascade)
   requestUserId Int
+  @@index([userId])
 }
