@@ -1,6 +1,9 @@
 // create a function to remove all jailed people at 12am or pm
 import { ApolloServer } from "apollo-server-express";
-import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
+import {
+  ApolloServerPluginDrainHttpServer,
+  AuthenticationError,
+} from "apollo-server-core";
 import express from "express";
 import typeDefs from "./graphql/typedefs/index.js";
 import resolvers from "./graphql/resolvers/index.js";
@@ -64,15 +67,21 @@ async function startApolloServer() {
       },
     ],
     context: async ({ req }) => {
+      console.log("request received");
       let user = null;
 
       // user auth
       if (req && req.headers && req.headers.authorization) {
-        const authSplit = req.headers.authorization.split(" ");
-        const bearer = authSplit[0];
-        if (bearer === "Bearer") {
-          const token = authSplit[1] || "";
-          user = token ? await getUser(token) : null;
+        try {
+          const authSplit = req.headers.authorization.split(" ");
+          const bearer = authSplit[0];
+          if (bearer === "Bearer") {
+            const token = authSplit[1] || "";
+            user = token ? await getUser(token) : null;
+          }
+        } catch (e) {
+          console.log("got an error");
+          throw new AuthenticationError("Can't read token");
         }
       }
       return {

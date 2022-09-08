@@ -81,6 +81,8 @@ const resolvers = {
       return user;
     },
     userExists: async (_, { firebaseId }, ctx) => {
+      console.log("request recieved");
+      console.log("firebaseId", firebaseId);
       //authChecker(ctx);
       const user = await prisma.user.findUnique({
         where: {
