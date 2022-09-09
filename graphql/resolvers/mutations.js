@@ -10,6 +10,7 @@ const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
       try {
+        console.log("signing up");
         const verfiyUser = await getAuth().verifyIdToken(firebaseId);
         const { uid } = verfiyUser;
         const newUser = await prisma.user.create({

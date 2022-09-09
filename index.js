@@ -67,9 +67,8 @@ async function startApolloServer() {
       },
     ],
     context: async ({ req }) => {
-      console.log("request received");
       let user = null;
-
+      console.log("req", req.headers);
       // user auth
       if (req && req.headers && req.headers.authorization) {
         try {
