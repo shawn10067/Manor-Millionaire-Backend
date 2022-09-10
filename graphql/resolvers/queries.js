@@ -81,6 +81,7 @@ const resolvers = {
       return user;
     },
     userExists: async (_, { firebaseId }) => {
+      console.log("checking if user exists with id", firebaseId);
       const user = await prisma.user.findUnique({
         where: {
           fireBaseId: firebaseId,
