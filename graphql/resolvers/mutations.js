@@ -44,6 +44,7 @@ const resolvers = {
         console.log(returningUser);
         return jwt.sign(returningUser, envConfig.JWT_SECRET);
       } catch (e) {
+        console.log("error occured");
         throw new UserInputError(e.message, {
           invalidArgs: e.errors,
         });
