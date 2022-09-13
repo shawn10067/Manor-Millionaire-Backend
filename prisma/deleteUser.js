@@ -17,6 +17,4 @@ const getAllUser = async () => {
   return users;
 };
 
-// deleteUser("N6hR59gi6LfIBe5dNvVye7jyaEF2");
-
-getAllUser();
+deleteUser("ZPS4kyIjbUYPSQeLvHWS339U20u2");

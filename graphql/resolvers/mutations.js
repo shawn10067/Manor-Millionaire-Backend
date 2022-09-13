@@ -10,7 +10,6 @@ const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
       try {
-        console.log("signing up");
         const verfiyUser = await getAuth().verifyIdToken(firebaseId);
         const { uid } = verfiyUser;
         const newUser = await prisma.user.create({
@@ -41,13 +40,10 @@ const resolvers = {
           ...newUser,
           cash: parseFloat(newUser.cash),
         };
-        console.log(returningUser);
-        return jwt.sign(returningUser, envConfig.JWT_SECRET);
+        const signedUser = jwt.sign(returningUser, envConfig.JWT_SECRET);
+        return signedUser;
       } catch (e) {
-        console.log("error occured");
-        throw new UserInputError(e.message, {
-          invalidArgs: e.errors,
-        });
+        throw new UserInputError("unable to create user");
       }
     },
     acceptProperty: async (_, { propertyID }, ctx) => {
