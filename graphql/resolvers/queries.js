@@ -31,7 +31,7 @@ const resolvers = {
           throw new AuthenticationError("No user found");
         }
       } catch (error) {
-        throw new AuthenticationError(error);
+        throw new AuthenticationError("invalid login credentials");
       }
     },
     searchUsers: async (_, { searchString }, ctx) => {
@@ -81,12 +81,16 @@ const resolvers = {
       return user;
     },
     userExists: async (_, { firebaseId }) => {
-      const user = await prisma.user.findUnique({
-        where: {
-          fireBaseId: firebaseId,
-        },
-      });
-      return user ? true : false;
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            fireBaseId: firebaseId,
+          },
+        });
+        return user ? true : false;
+      } catch (e) {
+        throw new UserInputError("invalid id to check for user existance");
+      }
     },
     spin: async (_, __, ctx) => {
       authChecker(ctx);
