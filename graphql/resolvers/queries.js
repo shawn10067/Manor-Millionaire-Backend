@@ -11,14 +11,12 @@ const resolvers = {
   Query: {
     login: async (_, { firebaseId }) => {
       try {
+        console.log("login request came with", firebaseId);
         const verfiyUser = await getAuth().verifyIdToken(firebaseId);
         const { uid } = verfiyUser;
         const user = await prisma.user.findUnique({
           where: {
             fireBaseId: uid,
-          },
-          include: {
-            properties: true,
           },
         });
         if (user) {
@@ -82,11 +80,14 @@ const resolvers = {
     },
     userExists: async (_, { firebaseId }) => {
       try {
+        const verfiyUser = await getAuth().verifyIdToken(firebaseId);
+        const { uid } = verfiyUser;
         const user = await prisma.user.findUnique({
           where: {
-            fireBaseId: firebaseId,
+            fireBaseId: uid,
           },
         });
+        console.log("user exists: ", user);
         return user ? true : false;
       } catch (e) {
         throw new UserInputError("invalid id to check for user existance");
@@ -214,6 +215,23 @@ const resolvers = {
       }
 
       return randomUserOnProperty;
+    },
+    getTradeId: async (_, { id }, ctx) => {
+      try {
+        authChecker(ctx);
+        const parsedId = parseInt(id);
+        const trade = await prisma.tradesOnUsers.findUnique({
+          where: {
+            id: parsedId,
+          },
+        });
+        if (!trade) {
+          throw UserInputError("Can't find trade.");
+        }
+        return trade;
+      } catch (e) {
+        throw new UserInputError("invalid id to check for trade existance");
+      }
     },
   },
 };
