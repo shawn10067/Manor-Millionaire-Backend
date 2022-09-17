@@ -17,4 +17,16 @@ const getAllUser = async () => {
   return users;
 };
 
-deleteUser("ZPS4kyIjbUYPSQeLvHWS339U20u2");
+const getUserWithUsername = async (username) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      username: username,
+    },
+  });
+  console.log("user", user);
+  return user;
+};
+
+getUserWithUsername("jesus");
+
+//deleteUser("ZPS4kyIjbUYPSQeLvHWS339U20u2");
