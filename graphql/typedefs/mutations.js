@@ -18,6 +18,8 @@ const typeDefs = gql`
     acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
     deleteUser(userId: ID!): Boolean!
+    deleteFriendRequest(friendRequestId: ID!): Boolean!
+    deleteTrade(tradeId: ID!): Boolean!
     jailUser(userId: ID!): Boolean!
   }
 `;

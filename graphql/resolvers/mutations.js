@@ -10,7 +10,6 @@ const resolvers = {
   Mutation: {
     signUp: async (_, { firebaseId, username }) => {
       try {
-        console.log("user sign up came with", firebaseId);
         const verfiyUser = await getAuth().verifyIdToken(firebaseId);
         const { uid } = verfiyUser;
         const newUser = await prisma.user.create({
@@ -524,6 +523,13 @@ const resolvers = {
           },
         });
 
+        // const allFriendRequests = await prisma.friendRequest.findMany({
+        //   where: {
+        //     userId: user.id,
+        //   },
+        // });
+        //console.log("friendRequest", allFriendRequests, user.username);
+
         // add friends to each user
         await prisma.$transaction([
           prisma.user.update({
@@ -609,6 +615,60 @@ const resolvers = {
         }
       } catch (e) {
         throw new UserInputError(e.message, { invalidArgs: userId });
+      }
+    },
+    deleteFriendRequest: async (_, { friendRequestId }, ctx) => {
+      authChecker(ctx);
+      const { user } = ctx;
+      try {
+        const intFriendRequestId = parseInt(friendRequestId);
+        const friendRequest = await prisma.friendRequest.findUnique({
+          where: {
+            id: intFriendRequestId,
+          },
+        });
+        if (friendRequest.requestUserId === user.id) {
+          await prisma.friendRequest.delete({
+            where: {
+              id: intFriendRequestId,
+            },
+          });
+          return true;
+        } else {
+          throw new AuthenticationError(
+            "You can't delete someone else's friend request",
+            { invalidArgs: friendRequestId }
+          );
+        }
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: friendRequestId });
+      }
+    },
+    deleteTrade: async (_, { tradeId }, ctx) => {
+      authChecker(ctx);
+      const { user } = ctx;
+      try {
+        const intTradeId = parseInt(tradeId);
+        const trade = await prisma.tradesOnUsers.findUnique({
+          where: {
+            id: intTradeId,
+          },
+        });
+        if (trade.userId === user.id) {
+          await prisma.trade.delete({
+            where: {
+              id: intTradeId,
+            },
+          });
+          return true;
+        } else {
+          throw new AuthenticationError(
+            "You can't delete someone else's trade",
+            { invalidArgs: tradeId }
+          );
+        }
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: tradeId });
       }
     },
     jailUser: async (_, { userId }, ctx) => {
