@@ -50,7 +50,6 @@ const resolvers = {
     },
     getMe: (_, __, ctx) => {
       authChecker(ctx);
-      console.log("getMe request came", ctx.user);
       return ctx.user;
     },
     getUser: async (_, { username }, ctx) => {

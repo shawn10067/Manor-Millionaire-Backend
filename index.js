@@ -28,7 +28,6 @@ const getUser = async (token) => {
       id,
     },
   });
-  console.log("user", user);
   return user;
 };
 
