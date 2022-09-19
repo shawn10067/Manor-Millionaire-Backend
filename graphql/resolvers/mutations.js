@@ -35,6 +35,7 @@ const resolvers = {
             },
             jailed: false,
             frozen: false,
+            lastSpin: new Date(),
           },
         });
         const returningUser = {
