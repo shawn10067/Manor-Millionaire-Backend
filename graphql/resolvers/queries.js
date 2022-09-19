@@ -11,7 +11,6 @@ const resolvers = {
   Query: {
     login: async (_, { firebaseId }) => {
       try {
-        console.log("login request came with", firebaseId);
         const verfiyUser = await getAuth().verifyIdToken(firebaseId);
         const { uid } = verfiyUser;
         const user = await prisma.user.findUnique({
@@ -88,7 +87,6 @@ const resolvers = {
             fireBaseId: uid,
           },
         });
-        console.log("user exists: ", user);
         return user ? true : false;
       } catch (e) {
         throw new UserInputError("invalid id to check for user existance");
