@@ -17,6 +17,7 @@ const typeDefs = gql`
     sendFriendRequest(userId: ID!): FriendRequest!
     acceptFriendRequest(friendRequestId: ID!): FriendRequest!
     inAppPurchase(amount: Int): String!
+    removeFriend(friendId: ID!): Boolean!
     deleteUser(userId: ID!): Boolean!
     deleteFriendRequest(friendRequestId: ID!): Boolean!
     deleteTrade(tradeId: ID!): Boolean!

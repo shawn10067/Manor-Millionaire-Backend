@@ -578,13 +578,6 @@ const resolvers = {
           },
         });
 
-        // deleting the friend request
-        await prisma.friendRequest.delete({
-          where: {
-            id: intFriendRequestId,
-          },
-        });
-
         return friendRequest;
       } catch (e) {
         throw new UserInputError(e.message, { invalidArgs: friendRequestId });
@@ -594,6 +587,46 @@ const resolvers = {
       authChecker(ctx);
       // determine what the product is and then update the user appropriately
       return "PURCHASED";
+    },
+    removeFriend: async (_, { friendId }, ctx) => {
+      authChecker(ctx);
+      const { user } = ctx;
+
+      try {
+        const intFriendId = parseInt(friendId);
+
+        // remove the friend from the user
+        await prisma.$transaction([
+          prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              friendsWithMe: {
+                disconnect: {
+                  id: intFriendId,
+                },
+              },
+            },
+          }),
+          prisma.user.update({
+            where: {
+              id: intFriendId,
+            },
+            data: {
+              friendsWithMe: {
+                disconnect: {
+                  id: user.id,
+                },
+              },
+            },
+          }),
+        ]);
+
+        return true;
+      } catch (e) {
+        throw new UserInputError(e.message, { invalidArgs: friendId });
+      }
     },
     deleteUser: async (_, { userId }, ctx) => {
       authChecker(ctx);
@@ -620,6 +653,7 @@ const resolvers = {
     },
     deleteFriendRequest: async (_, { friendRequestId }, ctx) => {
       authChecker(ctx);
+      // TODO: use this to implement the check
       const { user } = ctx;
       try {
         const intFriendRequestId = parseInt(friendRequestId);
@@ -628,21 +662,23 @@ const resolvers = {
             id: intFriendRequestId,
           },
         });
-        if (friendRequest.requestUserId === user.id) {
-          await prisma.friendRequest.delete({
-            where: {
-              id: intFriendRequestId,
-            },
-          });
+
+        if (!friendRequest) {
           return true;
-        } else {
-          throw new AuthenticationError(
-            "You can't delete someone else's friend request",
-            { invalidArgs: friendRequestId }
-          );
         }
+
+        // TODO: implement a check to see if the user is the sender or reciever of the friend request
+        await prisma.friendRequest.delete({
+          where: {
+            id: intFriendRequestId,
+          },
+        });
+
+        return true;
       } catch (e) {
-        throw new UserInputError(e.message, { invalidArgs: friendRequestId });
+        throw new UserInputError("Error attempting to delete request", {
+          invalidArgs: friendRequestId,
+        });
       }
     },
     deleteTrade: async (_, { tradeId }, ctx) => {
