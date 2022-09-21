@@ -68,6 +68,7 @@ async function startApolloServer() {
     ],
     context: async ({ req }) => {
       let user = null;
+      console.log("request came in");
       // user auth
       if (req && req.headers && req.headers.authorization) {
         try {
@@ -78,7 +79,7 @@ async function startApolloServer() {
             user = token ? await getUser(token) : null;
           }
         } catch (e) {
-          console.log("got an error");
+          console.log("got an error", e.message);
           throw new AuthenticationError("Can't read token");
         }
       }

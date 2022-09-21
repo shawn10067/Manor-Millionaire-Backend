@@ -139,31 +139,43 @@ const resolvers = {
       });
       return forUserFromDB;
     },
-    recievingProperties: async ({ senderProperties }, args, ctx) => {
-      const propertyIds = senderProperties.map((property) => {
-        return property.id;
-      });
-      const propertiesFromDB = await prisma.propertiesOnUsers.findMany({
-        where: {
-          id: {
-            in: propertyIds,
-          },
-        },
-      });
-      return propertiesFromDB;
-    },
     theirProperties: async (parent, args, ctx) => {
-      const propertyIds = parent.recieverProperties.map((property) => {
-        return property.id;
-      });
-      const propertiesFromDB = await prisma.propertiesOnUsers.findMany({
+      const { id } = parent;
+
+      const requestedTrade = await prisma.tradesOnUsers.findUnique({
         where: {
-          id: {
-            in: propertyIds,
+          id,
+        },
+        include: {
+          recieverProperties: {
+            include: {
+              property: true,
+            },
           },
         },
       });
-      return propertiesFromDB;
+
+      const { recieverProperties } = requestedTrade;
+      return recieverProperties;
+    },
+    recievingProperties: async (parent, args, ctx) => {
+      const { id } = parent;
+
+      const requestedTrade = await prisma.tradesOnUsers.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          senderProperties: {
+            include: {
+              property: true,
+            },
+          },
+        },
+      });
+
+      const { senderProperties } = requestedTrade;
+      return senderProperties;
     },
     recievingCash: async ({ senderCash }, args, ctx) => {
       return parseInt(senderCash);

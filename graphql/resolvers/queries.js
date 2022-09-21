@@ -214,6 +214,34 @@ const resolvers = {
 
       return randomUserOnProperty;
     },
+    getUserPropertiesId: async (_, { userId }, ctx) => {
+      console.log("getUserPropertiesId was called");
+      authChecker(ctx);
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        console.log("user not found");
+        throw UserInputError("Can't find user.", {
+          invalidArgs: {
+            userId,
+          },
+        });
+      }
+      console.log("user was found");
+      const properties = await prisma.propertiesOnUsers.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          property: true,
+        },
+      });
+      console.log("properties were found", properties);
+      return properties;
+    },
     getTradeId: async (_, { id }, ctx) => {
       try {
         authChecker(ctx);
