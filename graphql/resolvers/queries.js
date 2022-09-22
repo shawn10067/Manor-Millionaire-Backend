@@ -244,6 +244,7 @@ const resolvers = {
     },
     getTradeId: async (_, { id }, ctx) => {
       try {
+        console.log("tried to get trade with id", id);
         authChecker(ctx);
         const parsedId = parseInt(id);
         const trade = await prisma.tradesOnUsers.findUnique({
@@ -256,6 +257,7 @@ const resolvers = {
         }
         return trade;
       } catch (e) {
+        console.log("error", e);
         throw new UserInputError("invalid id to check for trade existance");
       }
     },

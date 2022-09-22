@@ -686,26 +686,14 @@ const resolvers = {
       const { user } = ctx;
       try {
         const intTradeId = parseInt(tradeId);
-        const trade = await prisma.tradesOnUsers.findUnique({
+        await prisma.tradesOnUsers.delete({
           where: {
             id: intTradeId,
           },
         });
-        if (trade.userId === user.id) {
-          await prisma.trade.delete({
-            where: {
-              id: intTradeId,
-            },
-          });
-          return true;
-        } else {
-          throw new AuthenticationError(
-            "You can't delete someone else's trade",
-            { invalidArgs: tradeId }
-          );
-        }
+        return true;
       } catch (e) {
-        throw new UserInputError(e.message, { invalidArgs: tradeId });
+        throw new UserInputError("Couldn't delete trade");
       }
     },
     jailUser: async (_, { userId }, ctx) => {
