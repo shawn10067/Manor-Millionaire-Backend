@@ -27,6 +27,13 @@ const getUserWithUsername = async (username) => {
   return user;
 };
 
-getUserWithUsername("jesus");
+const deleteAllTrades = async () => {
+  const allTrades = await prisma.tradesOnUsers.findMany();
+  console.log("allTrades", allTrades);
+  await prisma.tradesOnUsers.deleteMany();
+};
+
+// getUserWithUsername("jesus");
+deleteAllTrades();
 
 //deleteUser("ZPS4kyIjbUYPSQeLvHWS339U20u2");

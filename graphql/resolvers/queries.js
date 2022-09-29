@@ -253,7 +253,7 @@ const resolvers = {
           },
         });
         if (!trade) {
-          throw UserInputError("Can't find trade.");
+          throw new UserInputError("Can't find trade.");
         }
         return trade;
       } catch (e) {

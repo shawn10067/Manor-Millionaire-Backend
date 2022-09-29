@@ -15,12 +15,12 @@ const typeDefs = gql`
 
   type Trade {
     id: ID!
-    user: User!
-    fromUser: User!
-    theirProperties: [UserProperty!]!
-    requestedCash: Float!
-    recievingProperties: [UserProperty!]!
-    recievingCash: Float!
+    senderUser: User!
+    senderCash: Float!
+    senderProperties: [UserProperty!]!
+    recieverUser: User!
+    recieverProperties: [UserProperty!]!
+    recieverCash: Float!
   }
 
   type FriendRequest {

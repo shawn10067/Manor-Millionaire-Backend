@@ -121,9 +121,8 @@ const resolvers = {
       return lastSpin;
     },
   },
-
   Trade: {
-    user: async ({ recieverId }, args, ctx) => {
+    recieverUser: async ({ recieverId }, args, ctx) => {
       const userFromDB = await prisma.user.findUnique({
         where: {
           id: recieverId,
@@ -131,7 +130,7 @@ const resolvers = {
       });
       return userFromDB;
     },
-    fromUser: async ({ senderId }, args, ctx) => {
+    senderUser: async ({ senderId }, args, ctx) => {
       const forUserFromDB = await prisma.user.findUnique({
         where: {
           id: senderId,
@@ -139,7 +138,7 @@ const resolvers = {
       });
       return forUserFromDB;
     },
-    theirProperties: async (parent, args, ctx) => {
+    recieverProperties: async (parent, args, ctx) => {
       const { id } = parent;
 
       const requestedTrade = await prisma.tradesOnUsers.findUnique({
@@ -158,7 +157,7 @@ const resolvers = {
       const { recieverProperties } = requestedTrade;
       return recieverProperties;
     },
-    recievingProperties: async (parent, args, ctx) => {
+    senderProperties: async (parent, args, ctx) => {
       const { id } = parent;
 
       const requestedTrade = await prisma.tradesOnUsers.findUnique({
@@ -177,10 +176,10 @@ const resolvers = {
       const { senderProperties } = requestedTrade;
       return senderProperties;
     },
-    recievingCash: async ({ senderCash }, args, ctx) => {
+    senderCash: async ({ senderCash }, args, ctx) => {
       return parseInt(senderCash);
     },
-    requestedCash: async ({ recieverCash }, args, ctx) => {
+    recieverCash: async ({ recieverCash }, args, ctx) => {
       return parseInt(recieverCash);
     },
   },
