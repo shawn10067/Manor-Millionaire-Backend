@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,25 +8,24 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-// create a new type called "User" in the database based on the graphql typedefs created
 model User {
   id                 Int                 @id @unique @default(autoincrement())
   username           String              @unique
+  cash               BigInt
+  fireBaseId         String              @unique
   frozen             Boolean             @default(false)
   jailed             Boolean             @default(false)
   lastSpin           DateTime            @default(now())
-  cash               BigInt
-  fireBaseId         String              @unique
-  friendsWithMe      User[]              @relation("friends")
-  myFriends          User[]              @relation("friends")
-  sentTrades         TradesOnUsers[]     @relation("senderUser")
-  receivedTrades     TradesOnUsers[]     @relation("recieverUser")
-  properties         PropertiesOnUsers[]
-  friendRequests     FriendRequest[]     @relation("gotRequestUser")
   sentfriendRequests FriendRequest[]     @relation("requestUser")
+  friendRequests     FriendRequest[]     @relation("gotRequestUser")
+  properties         PropertiesOnUsers[]
+  receivedTrades     TradesOnUsers[]     @relation("recieverUser")
+  sentTrades         TradesOnUsers[]     @relation("senderUser")
+  User_B             User[]              @relation("friends")
+  User_A             User[]              @relation("friends")
 
   @@index([username, fireBaseId])
-  }
+}
 
 model Property {
   id              Int                 @id @unique @default(autoincrement())
@@ -47,38 +43,39 @@ model Property {
   ownerConnection PropertiesOnUsers[]
 }
 
-// table that connects users to properties
 model PropertiesOnUsers {
   id            Int             @id @unique @default(autoincrement())
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
-  property      Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId    Int
   status        String          @default("alone")
-  beingSent     TradesOnUsers[] @relation("propertySender")
+  property      Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   beingRecieved TradesOnUsers[] @relation("propertyReceiver")
+  beingSent     TradesOnUsers[] @relation("propertySender")
+
   @@index([userId])
 }
 
-// trade model
 model TradesOnUsers {
   id                 Int                 @id @unique @default(autoincrement())
-  senderUser         User                @relation("senderUser", fields: [senderId], references: [id], onDelete: Cascade)
   senderId           Int
-  recieverUser       User                @relation("recieverUser", fields: [recieverId], references: [id], onDelete: Cascade)
   recieverId         Int
   senderCash         BigInt
   recieverCash       BigInt
-  senderProperties   PropertiesOnUsers[] @relation("propertySender")
+  recieverUser       User                @relation("recieverUser", fields: [recieverId], references: [id], onDelete: Cascade)
+  senderUser         User                @relation("senderUser", fields: [senderId], references: [id], onDelete: Cascade)
   recieverProperties PropertiesOnUsers[] @relation("propertyReceiver")
+  senderProperties   PropertiesOnUsers[] @relation("propertySender")
+
   @@index([recieverId])
 }
 
 model FriendRequest {
   id            Int  @id @unique @default(autoincrement())
-  user          User @relation("gotRequestUser", fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
-  requestUser   User @relation("requestUser", fields: [requestUserId], references: [id], onDelete: Cascade)
   requestUserId Int
+  requestUser   User @relation("requestUser", fields: [requestUserId], references: [id], onDelete: Cascade)
+  user          User @relation("gotRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
