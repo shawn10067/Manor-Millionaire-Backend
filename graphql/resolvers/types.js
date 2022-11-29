@@ -111,7 +111,6 @@ const resolvers = {
           myFriends: true,
         },
       });
-      console.log("friends, friends", user.myFriends);
       return user.myFriends;
     },
     cash: async (parent) => {
