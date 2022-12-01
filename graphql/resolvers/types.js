@@ -108,7 +108,7 @@ const resolvers = {
           id: parent.id,
         },
         include: {
-          myFriends: true,
+          myFriends: true
         },
       });
       return user.myFriends;

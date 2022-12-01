@@ -49,6 +49,7 @@ const resolvers = {
       return results;
     },
     getMe: (_, __, ctx) => {
+      console.log("getMe");
       authChecker(ctx);
       return ctx.user;
     },

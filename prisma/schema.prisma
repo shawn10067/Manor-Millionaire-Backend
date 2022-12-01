@@ -21,8 +21,8 @@ model User {
   properties         PropertiesOnUsers[]
   receivedTrades     TradesOnUsers[]     @relation("recieverUser")
   sentTrades         TradesOnUsers[]     @relation("senderUser")
-  User_B             User[]              @relation("friends")
-  User_A             User[]              @relation("friends")
+  friendsWithMe      User[]              @relation("friends")
+  myFriends          User[]              @relation("friends")
 
   @@index([username, fireBaseId])
 }
